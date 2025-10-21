@@ -71,7 +71,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 if Path(BANNER).exists():
-    st.image(BANNER, use_column_width=True)
+    st.image(BANNER, use_container_width=True)
 #st.title("AI-Powered Apple Leaf Specialist")
 #st.caption("Capture or upload one apple leaf photo. The model predicts healthy · scab · rust · black_rot, or routes to unknown at low confidence.")
 
@@ -303,7 +303,7 @@ if file:
 
     c1, c2 = st.columns([1,1])
     with c1:
-        st.image(pil, caption="Input", use_column_width=True)
+        st.image(pil, caption="Input", use_container_width=True)
 
     probs = predict_probs(pil)
     pred_label, pred_conf, _ = decide(probs, labels, THRESHOLD)
