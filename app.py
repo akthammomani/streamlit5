@@ -25,7 +25,7 @@ APP_LOGO = "logo 2.jpg"
 st.set_page_config(
     page_title="AI-Powered Apple Leaf Specialist",
     page_icon=APP_LOGO if Path(APP_LOGO).exists() else "🍎",
-    layout="wide",
+    #layout="wide",
 )
 
 # Card-like look for uploader and camera:
