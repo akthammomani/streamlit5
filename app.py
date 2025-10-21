@@ -44,8 +44,8 @@ div[data-testid="stCameraInput"]{
 
 if Path(BANNER).exists():
     st.image(BANNER, use_container_width=True)
-st.title("AI-Powered Apple Leaf Specialist")
-st.caption("Capture or upload one apple leaf photo. The model predicts healthy · scab · rust · black_rot, or routes to unknown at low confidence.")
+#st.title("AI-Powered Apple Leaf Specialist")
+#st.caption("Capture or upload one apple leaf photo. The model predicts healthy · scab · rust · black_rot, or routes to unknown at low confidence.")
 
 # -------------------- Utilities --------------------
 def _load_json(p: Path, default):
