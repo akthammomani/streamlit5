@@ -8,6 +8,7 @@ from PIL import Image, ImageOps
 import streamlit as st
 import torch
 import torchvision.transforms as T
+import base64
 
 # -------------------- Paths --------------------
 ART = Path("Data_Directory/artifacts")
@@ -42,8 +43,35 @@ div[data-testid="stCameraInput"]{
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+<style>
+/* Sidebar header block */
+.sidebar-header {
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: center;
+  text-align: center;
+  gap: .4rem;
+  margin-bottom: 1rem;
+}
+.sidebar-header img {
+  width: 96px;              /* tweak size if you like */
+  height: auto;
+  border-radius: 12px;      /* optional rounded corners */
+  box-shadow: 0 2px 6px rgba(0,0,0,.08);
+}
+.sidebar-title {
+  font-weight: 700;
+  font-size: 1.0rem;
+  line-height: 1.2;
+  color: #2c313f;
+}
+</style>
+""", unsafe_allow_html=True)
+
 if Path(BANNER).exists():
-    st.image(BANNER, use_container_width=True)
+    st.image(BANNER, use_column_width=True)
 #st.title("AI-Powered Apple Leaf Specialist")
 #st.caption("Capture or upload one apple leaf photo. The model predicts healthy · scab · rust · black_rot, or routes to unknown at low confidence.")
 
@@ -193,8 +221,22 @@ def on_upload_change():
     st.session_state.show_camera = False
 
 # -------------------- Sidebar controls --------------------
+def sidebar_logo(title:str, path:str):
+    if Path(path).exists():
+        b64 = base64.b64encode(Path(path).read_bytes()).decode()
+        ext = Path(path).suffix.lstrip(".").lower() or "png"
+        img_html = f'<img src="data:image/{ext};base64,{b64}" alt="logo" />'
+    else:
+        img_html = '<div style="font-size:48px">🍎</div>'
+    st.markdown(f'''
+        <div class="sidebar-header">
+            {img_html}
+            <div class="sidebar-title">{title}</div>
+        </div>
+    ''', unsafe_allow_html=True)
+
 with st.sidebar:
-    if Path(APP_LOGO).exists(): st.image(APP_LOGO, width=96)
+    sidebar_logo("AI-Powered Apple Leaf Specialist", APP_LOGO)
     st.subheader("Settings")
     THRESHOLD = st.slider("Decision threshold (τ)", 0.0, 0.99, 0.85, 0.01)
     dark_thr   = st.slider("Too dark threshold", 0.05, 0.50, 0.25, 0.01)
@@ -261,7 +303,7 @@ if file:
 
     c1, c2 = st.columns([1,1])
     with c1:
-        st.image(pil, caption="Input", use_container_width=True)
+        st.image(pil, caption="Input", use_column_width=True)
 
     probs = predict_probs(pil)
     pred_label, pred_conf, _ = decide(probs, labels, THRESHOLD)
