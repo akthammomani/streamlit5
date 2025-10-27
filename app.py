@@ -268,7 +268,7 @@ st.subheader("Add a leaf photo")
 left, right = st.columns([1,1], gap="large")
 
 with left:
-    st.markdown("#### Upload Photo")
+    #st.markdown("#### Upload Photo")
     st.markdown('<div class="upload-section">', unsafe_allow_html=True)
     st.markdown("#### Upload Photo")  # Uses markdown header, like "Record Photo"
     st.markdown('<div class="sub">Drop a JPG/PNG here, or browse</div>', unsafe_allow_html=True)
