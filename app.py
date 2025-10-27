@@ -543,7 +543,7 @@ if file:
 
     with med:
         st.markdown("### Learn More")
-        st.markdown("[![](https://img.shields.io/badge/GitHub%20-AI-Powered%20Apple%20Leaf%20Specialist-informational)](https://github.com/akthammomani/ai_powered_apple_leaf_specialist)")
+        st.markdown("[![](https://img.shields.io/badge/GitHub%20-AI--Powered%20Apple%20Leaf%20Specialist-informational)](https://github.com/akthammomani/ai_powered_apple_leaf_specialist)")
 
     with r1_right:
         st.markdown("### Predicted Apple Disease Label is:")
