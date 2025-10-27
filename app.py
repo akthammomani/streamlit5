@@ -29,7 +29,7 @@ st.set_page_config(
 # Card-like look for uploader and camera (TIGHT SPACING)
 st.markdown("""
 <style>
-.section { margin-bottom:.25rem; }
+.section { margin-bottom:.05rem; }
 .section .title { font-size:1.4rem; font-weight:700; margin:0 0 .15rem 0; color:#2c313f; }
 .section .sub   { color:#6b7280; margin:0 0 .25rem 0; }
 
