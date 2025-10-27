@@ -7,3 +7,6 @@ Pillow>=10.2
 # PyTorch (CPU) + torchvision
 torch>=2.2,<2.4
 torchvision>=0.17,<0.19
+
+streamlit-javascript==0.1.5
+
