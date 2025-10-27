@@ -33,24 +33,22 @@ st.markdown("""
 .section .title { font-size:1.4rem; font-weight:700; margin:0 0 .15rem 0; color:#2c313f; }
 .section .sub   { color:#6b7280; margin:0 0 .25rem 0; }
 
-/* Uploader card (unchanged) */
+/* Uploader (unchanged) */
 div[data-testid="stFileUploader"]{ margin-top:.25rem; }
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
   border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px; padding:12px;
 }
 
-/* Camera card that mirrors uploader, with right-aligned button */
-.camera-row{ position:relative; margin-top:.25rem; }
+/* Camera card that mirrors uploader */
 .camera-card{
-  border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px;
-  min-height:64px; padding:12px; display:flex; align-items:center; color:#6b7280;
+  width:100%; border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px;
+  padding:12px; min-height:64px; margin-top:.25rem;
 }
-.camera-hint{ padding-right:116px; }          /* leave room for button */
-.camera-row .stButton > button{
-  position:absolute; right:12px; top:12px; margin:0;  /* put button inside the gray card */
-}
+.camera-hint{ color:#6b7280; padding:.25rem 0; }
+.camera-btn .stButton>button{ margin:0; }   /* remove default margin */
 </style>
 """, unsafe_allow_html=True)
+
 
 
 
@@ -234,18 +232,23 @@ with right:
                 '<div class="sub">Use your device camera</div>', unsafe_allow_html=True)
 
     if not st.session_state.show_camera:
-        # IMPORTANT: open the wrapper + card, then render the button, then close the tags.
-        st.markdown('<div class="camera-row"><div class="camera-card">'
-                    '<div class="camera-hint">Tap “Open camera” to take a photo.</div>',
-                    unsafe_allow_html=True)
-        st.button("Open camera", on_click=open_camera, key="open_cam_btn")
-        st.markdown('</div></div>', unsafe_allow_html=True)
+        # Single gray card with two columns inside (left text, right button)
+        st.markdown('<div class="camera-card">', unsafe_allow_html=True)
+        cam_l, cam_r = st.columns([8, 2])
+        with cam_l:
+            st.markdown('<div class="camera-hint">Tap “Open camera” to take a photo.</div>', unsafe_allow_html=True)
+        with cam_r:
+            st.container().markdown('<div class="camera-btn">', unsafe_allow_html=True)
+            st.button("Open camera", on_click=open_camera, use_container_width=True, key="open_cam_btn")
+            st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
         cap = None
     else:
         cap = st.camera_input("", key="camera_input")
         if st.button("Close camera", key="close_cam_btn"): close_camera()
 
     st.markdown("</div>", unsafe_allow_html=True)
+
 
 # Active source
 file = st.session_state.captured if st.session_state.source == "camera" else (
