@@ -31,90 +31,81 @@ st.set_page_config(
 # Card‑like look for uploader and camera
 st.markdown("""
 <style>
-:root{
-  --card-bg:#F6F8FB; --card-br:12px; --card-bc:#E6E9EF;
-  --text-strong:#2c313f; --text-muted:#6b7280; --text-body:#374151;
-  --btn-bc:#D1D5DB; --btn-bc-hover:#9CA3AF;
+/* Global override: kill spacing between columns */
+div[data-testid="column"] > div {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
 }
 
-/* Remove extra column padding gaps */
-div[data-testid="column"] > div{ margin-top:0 !important; padding-top:0 !important; }
-
-/* Shared section titles */
-.section .title, .upload-section .title{
-  font-size:1.1rem; font-weight:700; color:var(--text-strong); margin:0 0 .15rem 0;
+/* Upload section: custom spacing + consistent typography */
+.upload-section .title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 .15rem 0;
+  color: #2c313f;
 }
-.section .sub, .upload-section .sub{
-  font-size:.9rem; color:var(--text-muted); margin:0 0 .5rem 0;
-}
-
-/* ===== Upload — Wish look ===== */
-.upload-section.wish, .upload-wrapper{ margin:0 !important; padding:0 !important; }
-.upload-section.wish div[data-testid="stFileUploader"]{ margin:0 !important; }
-.upload-section.wish div[data-testid="stFileUploader"] > div{ margin:0 !important; padding:0 !important; }
-
-/* Dropzone card */
-.upload-section.wish section[data-testid="stFileUploaderDropzone"]{
-  border:1px solid var(--card-bc) !important; background:var(--card-bg) !important;
-  border-radius:var(--card-br) !important; padding:10px 12px !important; box-shadow:none !important;
+.upload-section .sub {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 .5rem 0;
 }
 
-/* Compact internal text */
-.upload-section.wish section[data-testid="stFileUploaderDropzone"] p{
-  margin:0 !important; font-size:.95rem !important; color:var(--text-body) !important;
+/* Strip all vertical spacing around uploader */
+.upload-section,
+.upload-wrapper,
+.upload-wrapper > div[data-testid="stFileUploader"],
+.upload-wrapper section[data-testid="stFileUploaderDropzone"] {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
 }
 
-/* Hide native Browse button */
-.upload-section.wish section[data-testid="stFileUploaderDropzone"] button{ display:none !important; }
-
-/* Optional: smaller icon spacing */
-.upload-section.wish section[data-testid="stFileUploaderDropzone"] svg{
-  transform:scale(.95); margin-right:.25rem;
+/* Uploader visual styling */
+div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
+  border: 1.5px solid #E6E9EF;
+  background: #F6F8FB;
+  border-radius: 12px;
+  padding: 12px;
 }
 
-/* Footer: note + right-aligned Browse */
-.upload-section.wish .upload-foot{ display:flex; align-items:center; gap:.75rem; margin-top:.5rem; }
-.upload-section.wish .upload-foot .note{ font-size:.85rem; color:var(--text-muted); flex:1; }
-.upload-section.wish .custom-browse-btn{
-  background:#fff; border:1px solid var(--btn-bc); border-radius:8px;
-  padding:.42rem .8rem; font-size:.9rem; color:#111827; cursor:pointer; line-height:1;
+/* Camera card styling */
+.camera-card {
+  position: relative;
+  border: 1.5px solid #E6E9EF;
+  background: #F6F8FB;
+  border-radius: 12px;
+  min-height: 64px;
+  padding: 16px;
+  color: #6b7280;
 }
-.upload-section.wish .custom-browse-btn:hover{ border-color:var(--btn-bc-hover); }
-.upload-section.wish .custom-browse-btn:focus{ outline:2px solid rgba(59,130,246,.35); outline-offset:2px; }
-
-/* Hide empty label line from st.file_uploader(label="") */
-.upload-section.wish label[for^="stFileUploader"]{ display:none !important; }
-
-/* ===== Camera — Card + Button ===== */
-.camera-card{
-  position:relative; border:1.5px solid var(--card-bc); background:var(--card-bg);
-  border-radius:var(--card-br); min-height:64px; padding:16px; color:var(--text-muted);
+.camera-hint {
+  padding-right: 160px;
 }
-.camera-hint{ padding-right:160px; }
 
-.custom-cam-btn{
-  background:#fff; color:#111827; border:1px solid var(--btn-bc);
-  border-radius:8px; padding:.42rem .8rem; cursor:pointer;
+/* Camera button */
+.custom-cam-btn {
+  background: #ffffff;
+  color: #111827;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  padding: .4rem .8rem;
+  cursor: pointer;
 }
-.custom-cam-btn:hover{ border-color:var(--btn-bc-hover); }
-.custom-cam-btn:focus{ outline:2px solid rgba(59,130,246,.35); outline-offset:2px; }
+.custom-cam-btn:hover {
+  border-color: #9CA3AF;
+}
 
-/* Desktop position for Open camera button */
-#open_cam_real.custom-cam-btn{ position:absolute; right:18px; top:8px; }
-
-/* Nice spacing for Streamlit's camera input widget */
-[data-testid="stCameraInput"]{ margin-top:.25rem !important; }
-
-/* ===== Responsive ===== */
-@media (max-width:680px){
-  .camera-hint{ padding-right:0; }
-  #open_cam_real.custom-cam-btn{ position:static !important; margin-top:.5rem !important; }
-  .upload-section.wish .upload-foot{ flex-direction:column; align-items:flex-start; }
-  .upload-section.wish .custom-browse-btn{ width:100%; }
+/* Responsive */
+@media (max-width: 680px) {
+  .camera-hint { padding-right: 0; }
+  .custom-cam-btn {
+    position: static !important;
+    margin-top: .5rem !important;
+  }
 }
 </style>
 """, unsafe_allow_html=True)
-
 
 
 
@@ -291,40 +282,12 @@ st.subheader("Add a leaf photo")
 left, right = st.columns([1,1], gap="large")
 
 with left:
-    st.markdown("""
-    <div class="upload-section wish">
-      <div class="title">Upload Photo</div>
-      <div class="sub">Drop a JPG/PNG here, or browse</div>
-      <div class="upload-wrapper">
-    """, unsafe_allow_html=True)
-
-    # native uploader (kept for reliability)
+    st.markdown('<div class="upload-section">', unsafe_allow_html=True)
+    st.markdown('<div class="title">Upload Photo</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub">Drop a JPG/PNG here, or browse</div>', unsafe_allow_html=True)
+    st.markdown('<div class="upload-wrapper">', unsafe_allow_html=True)
     st.file_uploader(label="", type=["jpg", "jpeg", "png"], key="uploader", on_change=on_upload_change)
-
-    # external “Browse files” button (triggers the native input)
-    st.markdown("""
-      <div class="upload-foot">
-        <div class="note">Limit 200MB per file • JPG, JPEG, PNG</div>
-        <button id="custom-browse" class="custom-browse-btn">Browse files</button>
-      </div>
-    </div></div>
-    """, unsafe_allow_html=True)
-
-    # JS: click the hidden native input when our custom button is pressed
-    st_javascript("""
-    (function(){
-      const root = window.parent.document;
-      const btn  = root.getElementById("custom-browse");
-      if(!btn) return;
-      btn.onclick = function(){
-        const dz = root.querySelector('div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]');
-        if(!dz) return;
-        const input = dz.querySelector('input[type="file"]');
-        if(input){ input.click(); }
-      };
-    })();
-    """)
-
+    st.markdown("</div></div>", unsafe_allow_html=True)
 
 
 
