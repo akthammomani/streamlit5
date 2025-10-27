@@ -235,20 +235,15 @@ with left:
     st.markdown("</div>", unsafe_allow_html=True)
 
 with right:
-    #st.write("")
     st.markdown('<div class="section"><div class="title">Record Photo</div>'
                 '<div class="sub">Use your device camera</div>', unsafe_allow_html=True)
 
     if not st.session_state.show_camera:
-        # Single gray card with two columns inside (left text, right button)
-        st.markdown('<div class="camera-card">', unsafe_allow_html=True)
-        cam_l, cam_r = st.columns([8, 2])
-        with cam_l:
-            st.markdown('<div class="camera-hint">Tap “Open camera” to take a photo.</div>', unsafe_allow_html=True)
-        with cam_r:
-            st.container().markdown('<div class="camera-btn">', unsafe_allow_html=True)
-            st.button("Open camera", on_click=open_camera, use_container_width=True, key="open_cam_btn")
-            st.markdown('</div>', unsafe_allow_html=True)
+        # Wrapper that positions the button over the gray card
+        st.markdown('<div class="camera-row">', unsafe_allow_html=True)
+        st.markdown('<div class="camera-card"><div class="camera-hint">'
+                    'Tap “Open camera” to take a photo.</div></div>', unsafe_allow_html=True)
+        st.button("Open camera", on_click=open_camera, key="open_cam_btn")  # positioned by CSS
         st.markdown('</div>', unsafe_allow_html=True)
         cap = None
     else:
@@ -256,6 +251,7 @@ with right:
         if st.button("Close camera", key="close_cam_btn"): close_camera()
 
     st.markdown("</div>", unsafe_allow_html=True)
+
 
 
 
