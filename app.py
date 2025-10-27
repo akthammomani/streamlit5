@@ -29,29 +29,30 @@ st.set_page_config(
 # Card-like look for uploader and camera (TIGHT SPACING)
 st.markdown("""
 <style>
+/* Tight headings spacing */
 .section { margin-bottom:.05rem; }
 .section .title { font-size:1.4rem; font-weight:700; margin:0 0 .15rem 0; color:#2c313f; }
 .section .sub   { color:#6b7280; margin:0 0 .25rem 0; }
 
-/* Uploader dropzone */
+/* Uploader dropzone (unchanged) */
 div[data-testid="stFileUploader"]{ margin-top:.25rem; }
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
   border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px; padding:12px;
 }
 
-/* Camera row wrapper + card */
-.camera-row{ position:relative; margin-top:.05rem; }
+/* --- Camera card that mirrors the uploader --- */
+.camera-row{ margin-top:.25rem; }
 .camera-card{
-  border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px; padding:14px 12px;
-  min-height:64px; display:flex; align-items:center; color:#6b7280;
+  border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px;
+  padding:12px; min-height:64px;
+  display:flex; align-items:center; justify-content:space-between; gap:.75rem;
+  color:#6b7280;
 }
-/* Put the next Streamlit button INSIDE the card (top-right) */
-.camera-row .stButton>button{
-  position:absolute; right:12px; top:16px; margin:0;
-}
-.camera-card .stButton>button{ margin:0; }
+.camera-card .hint{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.camera-card .stButton>button{ margin:0; } /* remove default margin */
 </style>
 """, unsafe_allow_html=True)
+
 
 
 if Path(BANNER).exists():
@@ -232,10 +233,14 @@ with right:
     st.markdown('<div class="section"><div class="title">Record Photo</div>'
                 '<div class="sub">Use your device camera</div>', unsafe_allow_html=True)
     if not st.session_state.show_camera:
-        st.markdown('<div class="camera-row">', unsafe_allow_html=True)
-        st.markdown('<div class="camera-card">Tap “Open camera” to take a photo.</div>', unsafe_allow_html=True)
-        st.button("Open camera", on_click=open_camera)           # gets positioned inside the card by CSS
-        st.markdown('</div>', unsafe_allow_html=True)
+        # Card with text on left + button on right (inside the card)
+        col = st.columns([1])[0]
+        with col:
+            st.markdown('<div class="camera-row">', unsafe_allow_html=True)
+            st.markdown('<div class="camera-card">', unsafe_allow_html=True)
+            st.markdown('<div class="hint">Tap “Open camera” to take a photo.</div>', unsafe_allow_html=True)
+            st.button("Open camera", on_click=open_camera)
+            st.markdown('</div></div>', unsafe_allow_html=True)
         cap = None
     else:
         cap = st.camera_input("", key="camera_input")
