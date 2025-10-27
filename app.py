@@ -156,7 +156,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   border-radius: 12px;
 
   padding: 16px 12px;
-  min-height: 68px;
+  min-height: 66px;
   color: #6b7280;
   box-sizing: border-box;
 
