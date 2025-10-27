@@ -57,6 +57,10 @@ def _load_json(p: Path, default):
     except Exception:
         return default
 
+def preview_image(img: Image.Image, max_w: int, max_h: int) -> Image.Image:
+    """Return a resized copy that fits inside (max_w, max_h) without stretching."""
+    return ImageOps.contain(img, (max_w, max_h))
+
 @st.cache_resource(show_spinner=False)
 def load_model_only_ts():
     if not TS_PATH.exists():
@@ -208,7 +212,8 @@ with st.sidebar:
     st.checkbox("Keep camera open after capture", value=st.session_state.keep_camera_on, key="keep_camera_on")
     st.caption(f"Engine: TorchScript · Temperature: {TEMPERATURE:.2f} · Image size: {IMG_SIZE}")
     st.markdown("**Classes**: " + " · ".join(labels))
-
+    PREVIEW_MAX_W = st.slider("Image preview max width (px)", 280, 1000, 540, 10)
+    PREVIEW_MAX_H = st.slider("Image preview max height (px)", 200, 900, 520, 10)
 # -------------------- Inputs (cards, side-by-side) --------------------
 st.subheader("Add a leaf photo")
 left, right = st.columns([1,1], gap="large")
@@ -276,7 +281,10 @@ if file:
     with left_col:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown('<div class="section-title">Your Image:</div>', unsafe_allow_html=True)
-        st.image(pil, use_container_width=True)
+    
+        disp = preview_image(pil, PREVIEW_MAX_W, PREVIEW_MAX_H)
+        st.image(disp, use_container_width=False)   # width/height now controlled by sliders
+    
         st.markdown(
             f"## Predicted Apple Disease Label is:\n"
             f"**{_pretty(pred_label)}** with **{pred_conf*100:.0f}%** Confidence"
