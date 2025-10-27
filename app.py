@@ -431,7 +431,7 @@ with left:
 with right:
     st.markdown('<div class="leaf-right"><div class="leaf-block">', unsafe_allow_html=True)
 
-    # Header (stays where it is)
+    # Header stays the same
     st.markdown(
         '<div class="block-head">'
         '<div class="title">Record Photo</div>'
@@ -440,7 +440,7 @@ with right:
         unsafe_allow_html=True
     )
 
-    # NEW: spacer to push the card down
+    # Spacer that vertically aligns the gray cards
     st.markdown('<div class="right-spacer"></div>', unsafe_allow_html=True)
 
     if not st.session_state.show_camera:
@@ -505,7 +505,6 @@ with right:
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('</div></div>', unsafe_allow_html=True)  # close leaf-block + leaf-right
-
 
 # Pick active file
 file = st.session_state.captured if st.session_state.source == "camera" else (
