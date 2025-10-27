@@ -94,7 +94,7 @@ div[data-testid="column"] > div:first-child {
    Tweak 45px slightly if you're off by 1-2px on your screen.
 */
 .leaf-right .block-card {
-  margin-top: 55px !important;
+  margin-top: 45px !important;
 }
 
 /* Streamlit's file uploader injects its own top margin.
