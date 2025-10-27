@@ -1,3 +1,4 @@
+# app.py
 import json
 from pathlib import Path
 import base64
@@ -7,6 +8,7 @@ from PIL import Image, ImageOps
 import streamlit as st
 import torch
 import torchvision.transforms as T
+import streamlit.components.v1 as components
 from streamlit_javascript import st_javascript
 
 # -------------------- Paths --------------------
@@ -19,130 +21,47 @@ TEMP_PATH = ART / "temperature.json"
 BANNER   = "header_banner.jpg"
 APP_LOGO = "logo 2.jpg"
 
-# -------------------- Page --------------------
+# -------------------- Page + light styling --------------------
 st.set_page_config(
     page_title="AI-Powered Apple Leaf Specialist",
     page_icon=APP_LOGO if Path(APP_LOGO).exists() else "🍎",
     layout="wide",
 )
 
-def open_camera():
-    st.session_state.show_camera = True
-    st.session_state.source = "camera"
-    st.session_state.upload = None
-
-def close_camera():
-    st.session_state.show_camera = False
-
-
-# -------------------- CSS --------------------
+# Card‑like look for uploader and camera
 st.markdown("""
 <style>
-
-/* ===========================
-   GLOBAL COLUMN CLEANUP
-   =========================== */
-
-/* Streamlit gives each st.columns cell its own inner div with padding.
-   Kill that so both columns start at the same vertical origin. */
-div[data-testid="column"] > div:first-child {
+/* Global override: kill spacing between columns */
+div[data-testid="column"] > div {
   margin-top: 0 !important;
   padding-top: 0 !important;
 }
 
-/* We'll wrap each column in .leaf-left / .leaf-right in the Python code */
-.leaf-left { /* left column wrapper */ }
-.leaf-right { /* right column wrapper */ }
-
-/* Inner container for each column’s content. */
-.leaf-block {
-  display: block;
-  margin: 0;
-  padding: 0;
+/* Upload section: custom spacing + consistent typography */
+.upload-section .title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 .15rem 0;
+  color: #2c313f;
 }
-
-
-/* ===========================
-   HEADER (TITLE + SUBTITLE)
-   =========================== */
-
-/* Wrapper around "Upload Photo" / "Record Photo" + subtitle text */
-.block-head {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  margin: 0;
-  padding: 0;
-  line-height: 1.4;
-}
-
-/* Header title ("Upload Photo", "Record Photo") */
-.block-head .title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1f2937;      /* slate-800-ish */
-  margin: 0;
-  line-height: 1.4;
-}
-
-/* Header subtitle ("Drop a JPG/PNG...", "Use your device camera") */
-.block-head .sub {
+.upload-section .sub {
   font-size: 0.875rem;
-  font-weight: 400;
-  color: #6b7280;      /* gray-500/600 */
-  margin: 0;
-  line-height: 1.4;
+  color: #6b7280;
+  margin: 0 0 .5rem 0;
 }
 
-/* A consistent little gap below the header before its card (both columns) */
-.block-head {
-  margin-bottom: 8px;
-}
-
-
-/* ===========================
-   ALIGNMENT SPACER (RIGHT ONLY)
-   =========================== */
-
-/* This spacer will ONLY exist in the right column,
-   and it will push the camera card down so that the top
-   of the camera card lines up with the top of the upload card.
-   Adjust height until visually perfect. */
-.right-spacer {
-  height: 45px;   /* tweak this (40-55px) to align gray boxes horizontally */
-  width: 100%;
-}
-
-
-/* ===========================
-   CARD ROW WRAPPER
-   =========================== */
-
-.block-card {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* On the left side, Streamlit gives the uploader widget
-   a default top margin. Kill it so the upload card hugs
-   its header closely. */
-.leaf-left div[data-testid="stFileUploader"] {
-  margin-top: 0 !important;
-}
-
-/* Normalize spacing inside uploader layers */
+/* Strip all vertical spacing around uploader */
+.upload-section,
 .upload-wrapper,
 .upload-wrapper > div[data-testid="stFileUploader"],
 .upload-wrapper section[data-testid="stFileUploaderDropzone"] {
-  margin: 0 !important;
-  padding: 0 !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
 }
 
-
-/* ===========================
-   UPLOADER CARD (LEFT COLUMN)
-   =========================== */
-
+/* Uploader visual styling */
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
@@ -150,126 +69,50 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   padding: 12px;
 }
 
-
-/* ===========================
-   CAMERA CARD (RIGHT COLUMN)
-   =========================== */
-
-/* The gray card on the right side */
+/* Camera card styling */
 .camera-card {
   position: relative;
-  display: flex;
-  align-items: flex-start;   /* or center if you want vertical centering */
-
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
   border-radius: 12px;
-
-  padding: 16px 12px;
-  min-height: 78px;          /* was 67px; bump to better match uploader height */
+  min-height: 64px;
+  padding: 16px;
   color: #6b7280;
-  box-sizing: border-box;
-
-  margin: 0 !important; /* prevent Streamlit surprises */
 }
-
-/* Text inside camera card */
 .camera-hint {
-  font-size: 0.875rem;
-  line-height: 1.4;
-  color: #6b7280;
-  margin: 0;
-
-  /* Make room for the "Open camera" button on desktop */
-  padding-right: 150px;
+  padding-right: 160px;
 }
 
-
-/* ===========================
-   STREAMLIT "OPEN CAMERA" BUTTON
-   =========================== */
-
-/* We render the Streamlit button in a sibling div called .open-cam-btn-row
-   AFTER the card in the DOM, then pull it UP and OVERLAY it into the card. */
-.open-cam-btn-row {
-  position: relative;
-  height: 0;      /* so the wrapper itself doesn't add vertical gap below the card */
-  margin: 0;
-  padding: 0;
-}
-
-/* .stButton is the container Streamlit wraps around the actual <button>.
-   We absolutely position that container so it sits in the top-right corner
-   of the gray camera card, visually mirroring the uploader "Browse files". */
-.open-cam-btn-row .stButton {
-  position: absolute;
-  right: 16px;
-  top: -56px;     /* pull upward until it sits nicely inside .camera-card */
-  margin: 0;
-}
-
-/* Style the actual Streamlit <button> to match your desired pill/button look */
-.open-cam-btn-row .stButton > button {
+/* Camera button */
+.custom-cam-btn {
   background: #ffffff;
   color: #111827;
-  font-size: 0.875rem;
-  line-height: 1.2;
   border: 1px solid #D1D5DB;
   border-radius: 8px;
-  padding: .45rem .8rem;
+  padding: .4rem .8rem;
   cursor: pointer;
-  white-space: nowrap;
-  box-shadow: none;
 }
-
-.open-cam-btn-row .stButton > button:hover {
+.custom-cam-btn:hover {
   border-color: #9CA3AF;
 }
 
-
-/* ===========================
-   RESPONSIVE BEHAVIOR
-   =========================== */
-
+/* Responsive */
 @media (max-width: 680px) {
-
-  /* Stack vertical inside the camera card on small screens */
-  .camera-card {
-    flex-direction: column;
-  }
-
-  .camera-hint {
-    padding-right: 0;
-  }
-
-  /* On mobile, stop overlaying the button.
-     Let it flow *after* the card in normal doc order. */
-  .open-cam-btn-row {
-    height: auto;
-  }
-
-  .open-cam-btn-row .stButton {
-    position: static;
-    margin-top: .5rem;
-  }
-
-  .open-cam-btn-row .stButton > button {
-    width: auto;
-  }
-
-  /* On narrow screens, we don't want a huge offset,
-     so shrink the spacer. */
-  .right-spacer {
-    height: 16px;
+  .camera-hint { padding-right: 0; }
+  .custom-cam-btn {
+    position: static !important;
+    margin-top: .5rem !important;
   }
 }
-
 </style>
 """, unsafe_allow_html=True)
 
 
 
-# -------------------- Banner --------------------
+
+
+
+
 if Path(BANNER).exists():
     st.image(BANNER, use_container_width=True)
 
@@ -328,17 +171,7 @@ def green_coverage_soft(pil_img: Image.Image) -> float:
     H, S, V = hsv[...,0], hsv[...,1], hsv[...,2]
     mask_hsv = (H >= 11) & (H <= 85) & (S >= 20) & (V >= 20)
     rgb = np.asarray(pil_img.convert("RGB"))
-    R, G, B = rgb[...,0].astype(np.int16), rgb[...,1].astype*np.int16(), rgb[...,2].astype*np.int16()
-    # ^^ I'll fix that small typo below in final output to keep it valid Python
-
-def green_coverage_soft(pil_img: Image.Image) -> float:
-    hsv = np.array(pil_img.convert("HSV"))
-    H, S, V = hsv[...,0], hsv[...,1], hsv[...,2]
-    mask_hsv = (H >= 11) & (H <= 85) & (S >= 20) & (V >= 20)
-    rgb = np.asarray(pil_img.convert("RGB"))
-    R = rgb[...,0].astype(np.int16)
-    G = rgb[...,1].astype(np.int16)
-    B = rgb[...,2].astype(np.int16)
+    R, G, B = rgb[...,0].astype(np.int16), rgb[...,1].astype(np.int16), rgb[...,2].astype(np.int16)
     mask_gdom = (G >= R + 8) & (G >= B + 8)
     return float((mask_hsv | mask_gdom).mean())
 
@@ -366,11 +199,15 @@ def decide(probs: np.ndarray, labels, threshold: float):
     k = int(np.argmax(probs)); p = float(probs[k])
     return (labels[k], p, k) if p >= threshold else ("unknown", p, k)
 
+# ---- UI helpers ----
 def _pretty(lab: str) -> str:
     return lab.replace("_", " ").title()
 
 def vspace(rows: int = 2, row_px: int = 12):
     st.markdown(f"<div style='height:{rows*row_px}px'></div>", unsafe_allow_html=True)
+
+def preview_image(img: Image.Image, max_w: int, max_h: int) -> Image.Image:
+    return ImageOps.contain(img, (max_w, max_h))  # preserve aspect ratio
 
 def render_prob_bars_native(prob_map: dict):
     st.markdown("**Apple Disease Probability**")
@@ -380,13 +217,11 @@ def render_prob_bars_native(prob_map: dict):
         c1, c2, c3 = st.columns([1.6, 6, 1.2])
         with c1: st.write(_pretty(lab))
         with c2:
-            try:
-                st.progress(p)
-            except Exception:
-                st.progress(int(p*100))
+            try: st.progress(p)
+            except Exception: st.progress(int(p*100))
         with c3: st.write(f"{p*100:.1f}%")
 
-# Posters
+# -------------------- Posters --------------------
 CARE_POSTERS = {
     "black_rot": "black_rot_care_v1.jpg",
     "healthy":   "healthy_care_v1.jpg",
@@ -394,12 +229,17 @@ CARE_POSTERS = {
     "rust":      "rust_care_v1.jpg",
 }
 
-# Session state
+# -------------------- Session state --------------------
 if "show_camera" not in st.session_state:   st.session_state.show_camera = False
 if "source" not in st.session_state:        st.session_state.source = None
 if "captured" not in st.session_state:      st.session_state.captured = None
 if "upload" not in st.session_state:        st.session_state.upload = None
 if "keep_camera_on" not in st.session_state: st.session_state.keep_camera_on = False
+
+def open_camera():
+    st.session_state.show_camera = True
+    st.session_state.source = "camera"
+    st.session_state.upload = None
 
 def close_camera():
     st.session_state.show_camera = False
@@ -409,7 +249,7 @@ def on_upload_change():
     st.session_state.source = "upload"
     st.session_state.show_camera = False
 
-# Sidebar
+# -------------------- Sidebar --------------------
 def sidebar_logo(title:str, path:str):
     if Path(path).exists():
         b64 = base64.b64encode(Path(path).read_bytes()).decode()
@@ -424,139 +264,92 @@ def sidebar_logo(title:str, path:str):
     )
 
 with st.sidebar:
-    sidebar_logo("AI-Powered Apple Leaf Specialist", APP_LOGO)
+    sidebar_logo("AI‑Powered Apple Leaf Specialist", APP_LOGO)
     st.subheader("Settings")
-
     THRESHOLD = st.slider("Decision threshold (τ)", 0.0, 0.99, 0.85, 0.01)
     dark_thr   = st.slider("Too dark threshold", 0.05, 0.50, 0.25, 0.01)
     bright_thr = st.slider("Too bright threshold", 0.50, 0.99, 0.90, 0.01)
-    cov_min    = st.slider("Min green coverage (camera gate)", 0.00, 0.50, 0.04, 0.01)
-    tex_min    = st.slider("Min texture score (camera gate)", 0.0, 300.0, 25.0, 1.0)
+    cov_min = st.slider("Min green coverage (camera gate)", 0.00, 0.50, 0.04, 0.01)
+    tex_min = st.slider("Min texture score (camera gate)", 0.0, 300.0, 25.0, 1.0)
     PREVIEW_MAX_W = st.slider("Image preview max width (px)", 280, 1000, 520, 10)
     PREVIEW_MAX_H = st.slider("Image preview max height (px)", 200, 900, 520, 10)
-
     st.checkbox("Keep camera open after capture", value=st.session_state.keep_camera_on, key="keep_camera_on")
-
     st.caption(f"Engine: TorchScript · Temperature: {TEMPERATURE:.2f} · Image size: {IMG_SIZE}")
     st.markdown("**Classes**: " + " · ".join(labels))
 
-# Inputs row
+# -------------------- Inputs --------------------
 st.subheader("Add a leaf photo")
 left, right = st.columns([1,1], gap="large")
 
 with left:
-    # wrap LEFT column with .leaf-left so we can target its uploader
-    st.markdown('<div class="leaf-left"><div class="leaf-block">', unsafe_allow_html=True)
+    st.markdown('<div class="upload-section">', unsafe_allow_html=True)
+    st.markdown('<div class="title">Upload Photo</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub">Drop a JPG/PNG here, or browse</div>', unsafe_allow_html=True)
+    st.markdown('<div class="upload-wrapper">', unsafe_allow_html=True)
+    st.file_uploader(label="", type=["jpg", "jpeg", "png"], key="uploader", on_change=on_upload_change)
+    st.markdown("</div></div>", unsafe_allow_html=True)
 
-    st.markdown(
-        '<div class="block-head">'
-        '<div class="title">Upload Photo</div>'
-        '<div class="sub">Drop a JPG/PNG here, or browse</div>'
-        '</div>',
-        unsafe_allow_html=True
-    )
 
-    st.markdown('<div class="block-card upload-wrapper">', unsafe_allow_html=True)
-    st.file_uploader(
-        label="",
-        type=["jpg", "jpeg", "png"],
-        key="uploader",
-        on_change=on_upload_change
-    )
-    st.markdown('</div>', unsafe_allow_html=True)  # close block-card
-
-    st.markdown('</div></div>', unsafe_allow_html=True)  # close leaf-block + leaf-left
 
 with right:
-    # wrappers for CSS styling
-    st.markdown('<div class="leaf-right"><div class="leaf-block">', unsafe_allow_html=True)
+    st.markdown('<div class="section"><div class="title">Record Photo</div>'
+                '<div class="sub">Use your device camera</div>', unsafe_allow_html=True)
 
-    # Header (stays aligned with "Upload Photo")
-    st.markdown(
-        '<div class="block-head">'
-        '<div class="title">Record Photo</div>'
-        '<div class="sub">Use your device camera</div>'
-        '</div>',
-        unsafe_allow_html=True
-    )
+    if not st.session_state.show_camera:
+        st.markdown("""
+            <div class="camera-card">
+              <div class="camera-hint">Tap “Open camera” to take a photo.</div>
+              <button id="open_cam_real" class="custom-cam-btn" style="position:absolute; right:18px; top:8px;">
+                Open camera
+              </button>
+            </div>
+        """, unsafe_allow_html=True)
 
-    # spacer that vertically lines up the gray cards across columns
-    st.markdown('<div class="right-spacer"></div>', unsafe_allow_html=True)
+        js_result = st_javascript("""
+        (function(){
+          const btn = window.parent.document.getElementById("open_cam_real");
+          if(btn){
+            btn.onclick = function(){
+              window.parent.postMessage({type:"streamlit:setComponentValue", value:true}, "*");
+            };
+          }
+        })();
+        """, key="open_cam_js")
 
-    # We'll render inside here based on camera open/closed state
-    camera_area = st.container()
+        if js_result:
+            st.session_state.show_camera = True
+            st.session_state.source = "camera"
+            st.session_state.upload = None
 
-    # ---------- CAMERA OPEN STATE ----------
-    if st.session_state.get("show_camera", False):
-        with camera_area:
-            st.markdown('<div class="block-card">', unsafe_allow_html=True)
-
-            cap = st.camera_input("", key="camera_input")
-
-            if cap is not None:
-                st.session_state.captured = cap
-                st.session_state.source = "camera"
-                # auto-close camera after capture unless user wants it to stay open
-                if not st.session_state.get("keep_camera_on", False):
-                    st.session_state.show_camera = False
-                    st.rerun()
-
-            # manual close control
-            if st.button("Close camera", key="close_cam_btn"):
-                st.session_state.show_camera = False
-                st.rerun()
-
-            st.markdown('</div>', unsafe_allow_html=True)
-
-    # ---------- CAMERA CLOSED STATE ----------
+        cap = None
     else:
-        with camera_area:
-            # gray card with instructions
-            st.markdown(
-                """
-                <div class="block-card">
-                  <div class="camera-card">
-                    <p class="camera-hint">Tap “Open camera” to take a photo.</p>
-                  </div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+        cap = st.camera_input("", key="camera_input")
+        if cap is not None:
+            st.session_state.captured = cap
+            st.session_state.source = "camera"
+            if not st.session_state.keep_camera_on:
+                close_camera()
+        st.button("Close camera", on_click=close_camera, key="close_cam_btn")
 
-            # wrapper for the Streamlit button that we'll reposition with CSS
-            st.markdown('<div class="open-cam-btn-row">', unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-            if st.button("Open camera", key="open_cam_btn"):
-                st.session_state.show_camera = True
-                st.session_state.source = "camera"
-                st.session_state.upload = None
-                st.rerun()
-
-            st.markdown('</div>', unsafe_allow_html=True)
-
-    # close the two wrappers we opened up top
-    st.markdown('</div></div>', unsafe_allow_html=True)
-
-
-
-
-# Pick active file
+# Active source
 file = st.session_state.captured if st.session_state.source == "camera" else (
     st.session_state.upload if st.session_state.source == "upload" else None
 )
 
-# Inference / output
+# -------------------- Main inference path --------------------
 if file:
     pil = load_pil(file)
 
+    # Quality gates
     b = compute_brightness(pil)
     if b < dark_thr:
         st.warning(f"Image appears too dark (brightness {b:.2f}). Retake under brighter, even lighting.")
         st.stop()
     if b > bright_thr:
-        st.warning(f"Image appears too bright/washed-out (brightness {b:.2f}). Retake avoiding direct glare.")
+        st.warning(f"Image appears too bright/washed‑out (brightness {b:.2f}). Retake avoiding direct glare.")
         st.stop()
-
     if st.session_state.source == "camera":
         bypass_gate = st.checkbox("Bypass leaf check for this camera image", value=False)
         ok_leaf, cov, tex = is_leaf_like(pil, cov_min=cov_min, cov_max=0.98, tex_min=tex_min)
@@ -567,10 +360,12 @@ if file:
             )
             st.stop()
 
+    # Inference
     probs = predict_probs(pil)
     pred_label, pred_conf, _ = decide(probs, labels, THRESHOLD)
     prob_map = {lab: float(probs[i]) for i, lab in enumerate(labels)}
 
+    # -------- Row 1: image + prediction --------
     r1_left, r1_right = st.columns([1,1], gap="large")
     with r1_left:
         st.markdown("### Your Image:")
@@ -580,12 +375,14 @@ if file:
         st.markdown("### Predicted Apple Disease Label is:")
         st.markdown(f"**{_pretty(pred_label)}** with **{pred_conf*100:.0f}%** Confidence")
         render_prob_bars_native(prob_map)
-        st.caption("Model: Calibrated ResNet-18 (TorchScript). Low-confidence predictions route to ‘unknown’.")
+        st.caption("Model: Calibrated ResNet‑18 (TorchScript). Low‑confidence predictions route to ‘unknown’.")
     vspace(3)
 
+    # -------- Row 2: Title --------
     st.markdown(f"### Apple – {_pretty(pred_label)} Care Recommendations:")
     vspace(2)
 
+    # -------- Row 3: Poster image --------
     poster_path = CARE_POSTERS.get(pred_label, CARE_POSTERS["healthy"])
     if not Path(poster_path).exists():
         st.info("Care poster not found. Please add the JPGs next to app.py.")
