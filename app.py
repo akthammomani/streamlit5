@@ -47,7 +47,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
 }
 /* Put the next Streamlit button INSIDE the card (top-right) */
 .camera-row .stButton>button{
-  position:absolute; right:12px; top:12px; margin:0;
+  position:absolute; right:12px; top:16px; margin:0;
 }
 .camera-card .stButton>button{ margin:0; }
 </style>
