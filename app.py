@@ -31,10 +31,14 @@ st.set_page_config(
 # Card‑like look for uploader and camera
 st.markdown("""
 <style>
-/* Typography to match both sections */
-.upload-section .title,
-.upload-section .sub {
-  font-family: inherit;
+/* Global override: kill spacing between columns */
+div[data-testid="column"] > div {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Upload section: custom spacing + consistent typography */
+.upload-section .title {
   font-size: 1.4rem;
   font-weight: 700;
   margin: 0 0 .15rem 0;
@@ -42,18 +46,11 @@ st.markdown("""
 }
 .upload-section .sub {
   font-size: 0.875rem;
-  font-weight: normal;
   color: #6b7280;
-  margin-bottom: .25rem;
+  margin: 0 0 .5rem 0;
 }
 
-/* Kill default Streamlit vertical spacing in columns */
-div[data-testid="column"] > div {
-  margin-top: 0 !important;
-  padding-top: 0 !important;
-}
-
-/* Section structure clean-up */
+/* Strip all vertical spacing around uploader */
 .upload-section,
 .upload-wrapper,
 .upload-wrapper > div[data-testid="stFileUploader"],
@@ -64,7 +61,7 @@ div[data-testid="column"] > div {
   padding-bottom: 0 !important;
 }
 
-/* Uploader styling */
+/* Uploader visual styling */
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
@@ -72,7 +69,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   padding: 12px;
 }
 
-/* Camera card */
+/* Camera card styling */
 .camera-card {
   position: relative;
   border: 1.5px solid #E6E9EF;
@@ -99,7 +96,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   border-color: #9CA3AF;
 }
 
-/* Responsive behavior */
+/* Responsive */
 @media (max-width: 680px) {
   .camera-hint { padding-right: 0; }
   .custom-cam-btn {
@@ -109,6 +106,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
 }
 </style>
 """, unsafe_allow_html=True)
+
 
 
 
@@ -282,11 +280,9 @@ st.subheader("Add a leaf photo")
 left, right = st.columns([1,1], gap="large")
 
 with left:
-    #st.markdown("#### Upload Photo")
     st.markdown('<div class="upload-section">', unsafe_allow_html=True)
     st.markdown('<div class="title">Upload Photo</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub">Drop a JPG/PNG here, or browse</div>', unsafe_allow_html=True)
-
     st.markdown('<div class="upload-wrapper">', unsafe_allow_html=True)
     st.file_uploader(label="", type=["jpg", "jpeg", "png"], key="uploader", on_change=on_upload_change)
     st.markdown("</div></div>", unsafe_allow_html=True)
