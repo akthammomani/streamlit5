@@ -4,7 +4,6 @@ from pathlib import Path
 import base64
 
 import numpy as np
-import pandas as pd
 from PIL import Image, ImageOps
 import streamlit as st
 import torch
@@ -27,7 +26,6 @@ st.set_page_config(
     layout="wide",
 )
 
-# Card-like look for uploader and camera:
 st.markdown("""
 <style>
 .section { margin-bottom: 1.25rem; }
@@ -39,27 +37,19 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
 div[data-testid="stCameraInput"]{
   border: 1.5px solid #E6E9EF; background: #F6F8FB; border-radius: 12px; padding: 12px;
 }
-/* Simple card + poster containers */
-.card   { background:#F3F4F6; border:1.5px solid #D1D5DB; border-radius:18px; padding:18px; }
-.poster { background:#F9FAFB; border:1.5px solid #E5E7EB; border-radius:18px; padding:12px; }
-.section-title { font-size:1.15rem; font-weight:800; margin-bottom:.5rem; }
 </style>
 """, unsafe_allow_html=True)
 
 if Path(BANNER).exists():
     st.image(BANNER, use_container_width=True)
 
-# -------------------- Utilities --------------------
+# -------------------- Helpers --------------------
 def _load_json(p: Path, default):
     try:
         with open(p, "r") as f:
             return json.load(f)
     except Exception:
         return default
-
-def preview_image(img: Image.Image, max_w: int, max_h: int) -> Image.Image:
-    """Return a resized copy that fits inside (max_w, max_h) without stretching."""
-    return ImageOps.contain(img, (max_w, max_h))
 
 @st.cache_resource(show_spinner=False)
 def load_model_only_ts():
@@ -74,7 +64,6 @@ def load_model_only_ts():
     img_size = int(cfg["img_size"])
     mean, std = cfg["mean"], cfg["std"]
 
-    # Match training: resize -> center-crop -> tensor -> normalize
     pad = 32 if img_size >= 224 else int(img_size * 0.125)
     transform = T.Compose([
         T.Resize(img_size + pad),
@@ -99,14 +88,12 @@ def predict_probs(pil_img: Image.Image) -> np.ndarray:
         probs = torch.softmax(logits, dim=1).cpu().numpy()[0]
     return probs
 
-# -------------------- Quality checks --------------------
 def compute_brightness(pil_img: Image.Image) -> float:
     arr = np.asarray(pil_img.resize((256, 256))).astype(np.float32) / 255.0
     y = 0.2126*arr[:,:,0] + 0.7152*arr[:,:,1] + 0.0722*arr[:,:,2]
     return float(y.mean())
 
 def green_coverage_soft(pil_img: Image.Image) -> float:
-    # HSV band + RGB G-dominance union; tolerant to color casts
     hsv = np.array(pil_img.convert("HSV"))
     H, S, V = hsv[...,0], hsv[...,1], hsv[...,2]
     mask_hsv = (H >= 11) & (H <= 85) & (S >= 20) & (V >= 20)
@@ -139,34 +126,37 @@ def decide(probs: np.ndarray, labels, threshold: float):
     k = int(np.argmax(probs)); p = float(probs[k])
     return (labels[k], p, k) if p >= threshold else ("unknown", p, k)
 
-# -------------------- Care posters --------------------
-CARE_POSTERS = {
-    "black_rot": "black_rot_care.jpg",
-    "healthy":   "healthy_care.jpg",
-    "scab":      "scab_care.jpg",
-    "rust":      "rust_care.jpg",
-}
-
+# ---- UI helpers ----
 def _pretty(lab: str) -> str:
     return lab.replace("_", " ").title()
 
+def vspace(rows: int = 2, row_px: int = 12):
+    st.markdown(f"<div style='height:{rows*row_px}px'></div>", unsafe_allow_html=True)
+
+def preview_image(img: Image.Image, max_w: int, max_h: int) -> Image.Image:
+    return ImageOps.contain(img, (max_w, max_h))  # preserve aspect ratio
+
 def render_prob_bars_native(prob_map: dict):
     st.markdown("**Apple Disease Probability**")
-    order = ["black_rot", "healthy", "scab", "rust"]  # fixed order for display
+    order = ["black_rot", "healthy", "scab", "rust"]
     for lab in order:
         p = float(prob_map.get(lab, 0.0))
         c1, c2, c3 = st.columns([1.6, 6, 1.2])
-        with c1:
-            st.write(_pretty(lab))
+        with c1: st.write(_pretty(lab))
         with c2:
-            try:
-                st.progress(p)            # Streamlit >= 1.31 supports float 0-1
-            except Exception:
-                st.progress(int(p*100))   # fallback for older versions
-        with c3:
-            st.write(f"{p*100:.1f}%")
+            try: st.progress(p)             # Streamlit >=1.31
+            except Exception: st.progress(int(p*100))
+        with c3: st.write(f"{p*100:.1f}%")
 
-# -------------------- Session state (single-source input) --------------------
+# -------------------- Posters --------------------
+CARE_POSTERS = {
+    "black_rot": "black_rot_care_v1.jpg",
+    "healthy":   "healthy_care_v1.jpg",
+    "scab":      "scab_care_v1.jpg",
+    "rust":      "rust_care_v1.jpg",
+}
+
+# -------------------- Session state --------------------
 if "show_camera" not in st.session_state:   st.session_state.show_camera = False
 if "source" not in st.session_state:        st.session_state.source = None  # 'camera'|'upload'
 if "captured" not in st.session_state:      st.session_state.captured = None
@@ -186,7 +176,7 @@ def on_upload_change():
     st.session_state.source = "upload"
     st.session_state.show_camera = False
 
-# -------------------- Sidebar controls --------------------
+# -------------------- Sidebar --------------------
 def sidebar_logo(title:str, path:str):
     if Path(path).exists():
         b64 = base64.b64encode(Path(path).read_bytes()).decode()
@@ -194,12 +184,11 @@ def sidebar_logo(title:str, path:str):
         img_html = f'<img src="data:image/{ext};base64,{b64}" alt="logo" />'
     else:
         img_html = '<div style="font-size:48px">🍎</div>'
-    st.markdown(f'''
-        <div class="sidebar-header" style="display:flex;flex-direction:column;align-items:center;gap:.4rem;margin-bottom:1rem;text-align:center">
-            {img_html}
-            <div class="sidebar-title" style="font-weight:700;font-size:1.0rem;line-height:1.2;color:#2c313f">{title}</div>
-        </div>
-    ''', unsafe_allow_html=True)
+    st.markdown(
+        f'<div style="display:flex;flex-direction:column;align-items:center;gap:.4rem;margin-bottom:1rem;text-align:center">'
+        f'{img_html}<div style="font-weight:700;font-size:1.0rem;line-height:1.2;color:#2c313f">{title}</div></div>',
+        unsafe_allow_html=True
+    )
 
 with st.sidebar:
     sidebar_logo("AI-Powered Apple Leaf Specialist", APP_LOGO)
@@ -209,12 +198,13 @@ with st.sidebar:
     bright_thr = st.slider("Too bright threshold", 0.50, 0.99, 0.90, 0.01)
     cov_min = st.slider("Min green coverage (camera gate)", 0.00, 0.50, 0.04, 0.01)
     tex_min = st.slider("Min texture score (camera gate)", 0.0, 300.0, 25.0, 1.0)
+    PREVIEW_MAX_W = st.slider("Image preview max width (px)", 280, 1000, 520, 10)
+    PREVIEW_MAX_H = st.slider("Image preview max height (px)", 200, 900, 520, 10)
     st.checkbox("Keep camera open after capture", value=st.session_state.keep_camera_on, key="keep_camera_on")
     st.caption(f"Engine: TorchScript · Temperature: {TEMPERATURE:.2f} · Image size: {IMG_SIZE}")
     st.markdown("**Classes**: " + " · ".join(labels))
-    PREVIEW_MAX_W = st.slider("Image preview max width (px)", 280, 1000, 540, 10)
-    PREVIEW_MAX_H = st.slider("Image preview max height (px)", 200, 900, 520, 10)
-# -------------------- Inputs (cards, side-by-side) --------------------
+
+# -------------------- Inputs --------------------
 st.subheader("Add a leaf photo")
 left, right = st.columns([1,1], gap="large")
 
@@ -225,8 +215,6 @@ with left:
     st.markdown("</div>", unsafe_allow_html=True)
 
 with right:
-    st.write("") 
-    st.write("") 
     st.markdown('<div class="section"><div class="title">Record Photo</div>'
                 '<div class="sub">Use your device camera</div>', unsafe_allow_html=True)
     if not st.session_state.show_camera:
@@ -242,7 +230,7 @@ with right:
                 close_camera()
     st.markdown("</div>", unsafe_allow_html=True)
 
-# Select active source strictly
+# Active source
 file = st.session_state.captured if st.session_state.source == "camera" else (
        st.session_state.upload if st.session_state.source == "upload" else None)
 
@@ -250,7 +238,7 @@ file = st.session_state.captured if st.session_state.source == "camera" else (
 if file:
     pil = load_pil(file)
 
-    # Brightness checks
+    # Quality gates
     b = compute_brightness(pil)
     if b < dark_thr:
         st.warning(f"Image appears too dark (brightness {b:.2f}). Retake under brighter, even lighting.")
@@ -258,8 +246,6 @@ if file:
     if b > bright_thr:
         st.warning(f"Image appears too bright/washed-out (brightness {b:.2f}). Retake avoiding direct glare.")
         st.stop()
-
-    # Leaf-likeness gate ONLY for camera
     if st.session_state.source == "camera":
         bypass_gate = st.checkbox("Bypass leaf check for this camera image", value=False)
         ok_leaf, cov, tex = is_leaf_like(pil, cov_min=cov_min, cov_max=0.98, tex_min=tex_min)
@@ -273,38 +259,31 @@ if file:
     # Inference
     probs = predict_probs(pil)
     pred_label, pred_conf, _ = decide(probs, labels, THRESHOLD)
-
-    # Build a dict for bars
     prob_map = {lab: float(probs[i]) for i, lab in enumerate(labels)}
 
-    # --- Layout: Two panels ---
-    left_col, right_col = st.columns([1,1], gap="large")
+    # -------- Row 1: image (left) + prediction (right) --------
+    r1_left, r1_right = st.columns([1,1], gap="large")
+    with r1_left:
+        st.markdown("### Your Image:")
+        disp = preview_image(pil, PREVIEW_MAX_W, PREVIEW_MAX_H)  # tunable, no stretch
+        st.image(disp, use_container_width=False)
 
-    with left_col:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title">Your Image:</div>', unsafe_allow_html=True)
-    
-        disp = preview_image(pil, PREVIEW_MAX_W, PREVIEW_MAX_H)
-        st.image(disp, use_container_width=False)   # width/height now controlled by sliders
-    
-        st.markdown(
-            f"## Predicted Apple Disease Label is:\n"
-            f"**{_pretty(pred_label)}** with **{pred_conf*100:.0f}%** Confidence"
-        )
+    with r1_right:
+        st.markdown("## Predicted Apple Disease Label is:")
+        st.markdown(f"**{_pretty(pred_label)}** with **{pred_conf*100:.0f}%** Confidence")
         render_prob_bars_native(prob_map)
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.caption("Model: Calibrated ResNet-18 (TorchScript). Low-confidence predictions route to ‘unknown’.")
+    vspace(3)  # white space between rows
 
-    with right_col:
-        st.write("") 
-        st.write("") 
-        # Choose poster: if unknown, show 'healthy' as neutral fallback
-        poster_path = CARE_POSTERS.get(pred_label, CARE_POSTERS["healthy"])
-        if not Path(poster_path).exists():
-            st.info("Care poster not found. Please add the JPGs next to app.py.")
-        st.markdown('<div class="poster">', unsafe_allow_html=True)
-        st.image(poster_path, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+    # -------- Row 2: Title --------
+    st.markdown(f"## Apple – {{{_pretty(pred_label)}}} Care Recommendations:")
+    vspace(2)
 
-    st.caption("Model: Calibrated ResNet-18 (TorchScript). Low-confidence predictions route to ‘unknown’.")
+    # -------- Row 3: Poster image --------
+    poster_path = CARE_POSTERS.get(pred_label, CARE_POSTERS["healthy"])
+    if not Path(poster_path).exists():
+        st.info("Care poster not found. Please add the JPGs next to app.py.")
+    st.image(poster_path, use_container_width=True)
+
 else:
     st.info("Upload a photo or open the camera to begin.")
