@@ -545,7 +545,7 @@ if file:
         st.markdown(f"**{_pretty(pred_label)}** with **{pred_conf*100:.0f}%** Confidence")
         render_prob_bars_native(prob_map)
         st.write("#### Learn More")
-        st.markdown("[![](https://img.shields.io/badge/GitHub%20-Calibrated%20ResNet‑18%20Model-informational)](https://github.com/akthammomani/ai_powered_apple_leaf_specialist)")
+        st.markdown("[![](https://img.shields.io/badge/GitHub%20-Calibrated%20ResNet‑18%20Model-informational)](https://github.com/akthammomani/ai_powered_apple_leaf_specialist/blob/main/Notebooks/Modeling_AI_Powered_Apple_Leaf_Specialist.ipynb)")
 
         #st.caption("Model: Calibrated ResNet‑18 (TorchScript). Low‑confidence predictions route to ‘unknown’.")
     #vspace(3)
