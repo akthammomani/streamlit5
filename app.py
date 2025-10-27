@@ -84,6 +84,20 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
   margin-top: 0 !important;
   margin-bottom: 0 !important;
 }
+
+.upload-wrapper {
+  margin-top: 0 !important;
+}
+
+.upload-wrapper > div[data-testid="stFileUploader"] {
+  margin-top: 0 !important;
+}
+
+.upload-wrapper section[data-testid="stFileUploaderDropzone"] {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -256,14 +270,20 @@ st.subheader("Add a leaf photo")
 left, right = st.columns([1,1], gap="large")
 
 with left:
-    st.markdown(
-        '<div class="section upload-section">'
-        '<div class="title">Upload Photo</div>'
-        '<div class="sub">Drop a JPG/PNG here, or browse</div>',
-        unsafe_allow_html=True
-    )
+    st.markdown("""
+    <div class="upload-section">
+      <div class="title">Upload Photo</div>
+      <div class="sub">Drop a JPG/PNG here, or browse</div>
+      <div class="upload-wrapper">
+    """, unsafe_allow_html=True)
+
     st.file_uploader(label="", type=["jpg", "jpeg", "png"], key="uploader", on_change=on_upload_change)
-    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("""
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
 
 
 
