@@ -35,60 +35,65 @@ st.markdown("""
 .section .sub   { color:#6b7280; margin:0 0 .25rem 0; }
 
 /* ---------- Uploader card (left) ---------- */
-div[data-testid="stFileUploader"]{ margin-top:.25rem; }
+div[data-testid="stFileUploader"] { margin-top:.25rem; }
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
   border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px; padding:12px;
 }
 
 /* ---------- Camera card (right) ---------- */
-.camera-row { position: relative; margin-top:.25rem; }
+.camera-row { position:relative; margin-top:.25rem; }
 
-.camera-card {
+/* The gray card itself */
+.camera-card{
   border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px;
   min-height:64px; padding:16px; color:#6b7280;
 }
 
-/* keep room so text doesn't slide under the button */
-.camera-hint { padding-right:160px; }
+/* Keep space for the button so text won't sit under it */
+.camera-hint{ padding-right:160px; }
 
-/* Hide any visual chrome from Streamlit's form wrapper */
-.camera-row .stForm,
+/* ------ Nuke Streamlit wrappers around the button so no extra rounded box appears ------ */
+.camera-row [data-testid="element-container"],
+.camera-row [data-testid="stVerticalBlock"],
+.camera-row [data-testid="stHorizontalBlock"],
 .camera-row [data-testid="stForm"],
+.camera-row .stForm,
 .camera-row form {
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-/* also remove inner spacing some builds add */
-.camera-row .stForm > div,
-.camera-row [data-testid="stForm"] > div,
-.camera-row form > div {
-  margin: 0 !important; padding: 0 !important;
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+  margin:0 !important;
 }
 
-/* Place the button on the card, top-right */
-.camera-row .stForm .stButton > button,
-.camera-row [data-testid="stForm"] .stButton > button,
-.camera-row form .stButton > button {
-  position:absolute; right:18px; top:8px; margin:0;
+/* Some builds add an extra inner div — strip its spacing too */
+.camera-row [data-testid="element-container"] > div {
+  padding:0 !important; margin:0 !important; background:transparent !important;
+}
+
+/* ---------- Absolutely position ANY Streamlit button variant inside .camera-row ---------- */
+.camera-row .stButton,
+.camera-row [data-testid="stButton"] { position:absolute; right:18px; top:8px; z-index:2; }
+
+/* Style actual button element (multiple fallbacks for different builds) */
+.camera-row .stButton button,
+.camera-row [data-testid="stButton"] button,
+.camera-row button[kind],
+.camera-row button[data-testid="baseButton-secondary"],
+.camera-row button[data-testid="baseButton-primary"] {
   background:#ffffff; color:#111827;
-  border:1px solid #D1D5DB; border-radius:8px; padding:.4rem .8rem;
-  z-index:2;
+  border:1px solid #D1D5DB; border-radius:8px; padding:.4rem .8rem; margin:0;
 }
-.camera-row .stForm .stButton > button:hover,
-.camera-row [data-testid="stForm"] .stButton > button:hover,
-.camera-row form .stButton > button:hover { border-color:#9CA3AF; }
+.camera-row .stButton button:hover,
+.camera-row [data-testid="stButton"] button:hover,
+.camera-row button[kind]:hover { border-color:#9CA3AF; }
 
-/* ---------- Responsive: stack neatly on narrow screens ---------- */
-@media (max-width: 680px){
-  .camera-row .stForm .stButton > button,
-  .camera-row [data-testid="stForm"] .stButton > button,
-  .camera-row form .stButton > button {
-    position: static; margin-top:.5rem;
+/* ---------- Responsive: on narrow screens let the button drop under ---------- */
+@media (max-width:680px){
+  .camera-row .stButton, .camera-row [data-testid="stButton"] {
+    position:static; margin-top:.5rem;
   }
-  .camera-hint { padding-right:0; }
+  .camera-hint{ padding-right:0; }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -273,29 +278,27 @@ with right:
                 '<div class="sub">Use your device camera</div>', unsafe_allow_html=True)
 
     if not st.session_state.show_camera:
+        # ⬇️ PLACE YOUR MARKUP RIGHT HERE
         st.markdown('<div class="camera-row">', unsafe_allow_html=True)
-        st.markdown('<div class="camera-card"><div class="camera-hint">'
-                    'Tap “Open camera” to take a photo.</div></div>', unsafe_allow_html=True)
-    
-        # Put the button in a FORM so we can style it reliably
-        with st.form("open_cam_form", clear_on_submit=True):
-            opened = st.form_submit_button("Open camera")
+        st.markdown(
+            '<div class="camera-card"><div class="camera-hint">'
+            'Tap “Open camera” to take a photo.</div></div>',
+            unsafe_allow_html=True
+        )
+        st.button("Open camera", on_click=open_camera, key="open_cam_btn")
         st.markdown('</div>', unsafe_allow_html=True)
-    
-        if opened:
-            open_camera()
         cap = None
     else:
         cap = st.camera_input("", key="camera_input")
-        # 🔧 Write the captured file to session state so inference proceeds
         if cap is not None:
             st.session_state.captured = cap
             st.session_state.source = "camera"
             if not st.session_state.keep_camera_on:
                 close_camera()
-        st.button("Close camera", on_click=lambda: close_camera(), key="close_cam_btn")
+        st.button("Close camera", on_click=close_camera, key="close_cam_btn")
 
     st.markdown("</div>", unsafe_allow_html=True)
+
 
 # Active source
 file = st.session_state.captured if st.session_state.source == "camera" else (
