@@ -49,7 +49,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
 }
 
 /* Reserve space so text doesn’t go under the button */
-.camera-hint { padding-right:128px; }
+.camera-hint { padding-right:160px; }
 
 /* Place the next Streamlit button INSIDE the row, top-right over the gray card */
 .camera-row .stButton > button {
