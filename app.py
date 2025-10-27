@@ -45,9 +45,7 @@ div[data-testid="column"] > div:first-child {
 .leaf-left { /* left column wrapper */ }
 .leaf-right { /* right column wrapper */ }
 
-/* Inner container for each column’s content.
-   We aren't forcing a grid anymore (Streamlit wraps each st.markdown),
-   so just use normal block flow. */
+/* Inner container for each column’s content. */
 .leaf-block {
   display: block;
   margin: 0;
@@ -69,7 +67,7 @@ div[data-testid="column"] > div:first-child {
   line-height: 1.4;
 }
 
-/* Big line ("Upload Photo", "Record Photo") */
+/* Header title ("Upload Photo", "Record Photo") */
 .block-head .title {
   font-size: 1rem;
   font-weight: 600;
@@ -78,61 +76,52 @@ div[data-testid="column"] > div:first-child {
   line-height: 1.4;
 }
 
-/* Small line ("Drop a JPG/PNG here...", "Use your device camera") */
+/* Header subtitle ("Drop a JPG/PNG...", "Use your device camera") */
 .block-head .sub {
   font-size: 0.875rem;
   font-weight: 400;
-  color: #6b7280;      /* gray-500/600 range */
+  color: #6b7280;      /* gray-500/600 */
   margin: 0;
   line-height: 1.4;
 }
 
-/* A consistent little gap below the header block before its card.
-   This affects BOTH columns equally. */
+/* A consistent little gap below the header before its card (both columns) */
 .block-head {
   margin-bottom: 8px;
 }
 
 
 /* ===========================
-   CARD WRAPPER ROW
+   ALIGNMENT SPACER (RIGHT ONLY)
    =========================== */
 
-/* .block-card is the div we output right before the uploader or camera card.
-   Streamlit wraps THIS in a .stMarkdown div, so margin on .block-card alone
-   doesn't move the stack. Still zero it out for cleanliness. */
+/* This spacer will ONLY exist in the right column,
+   and it will push the camera card down so that the top
+   of the camera card lines up with the top of the upload card.
+   Adjust height until visually perfect. */
+.right-spacer {
+  height: 45px;   /* try 45, bump to 50 if camera card still too high */
+  width: 100%;
+}
+
+
+/* ===========================
+   CARD ROW WRAPPER
+   =========================== */
+
 .block-card {
   margin: 0 !important;
   padding: 0 !important;
 }
 
-/* CRUCIAL ALIGNMENT FIX:
-   Streamlit wraps each st.markdown() in a .stMarkdown div.
-   So in the right column, we select the .stMarkdown that CONTAINS
-   the block-card (which ultimately contains the camera card),
-   and push THAT wrapper down.
-
-   This moves just the camera card down to match the upload card,
-   but does NOT move the "Record Photo" heading itself.
-*/
-.leaf-right div.stMarkdown:has(.block-card) {
-  margin-top: 45px !important;  /* tweak this number (e.g. 40-55px) if needed */
-}
-
-/* On the left side, Streamlit gives the uploader widget an annoying
-   default margin-top. Remove it so that the upload card sits snug
-   under its header. */
+/* On the left side, Streamlit gives the uploader widget
+   a default top margin. Kill it so the upload card hugs
+   its header closely. */
 .leaf-left div[data-testid="stFileUploader"] {
   margin-top: 0 !important;
 }
 
-
-/* ===========================
-   UPLOADER CARD (LEFT COLUMN)
-   =========================== */
-
-/* Streamlit nests the file uploader markup in a few layers.
-   We normalize spacing on all of them to eliminate unexpected gaps. */
+/* Normalize spacing inside uploader layers */
 .upload-wrapper,
 .upload-wrapper > div[data-testid="stFileUploader"],
 .upload-wrapper section[data-testid="stFileUploaderDropzone"] {
@@ -140,8 +129,11 @@ div[data-testid="column"] > div:first-child {
   padding: 0 !important;
 }
 
-/* This is the visible drag/drop zone.
-   Style it like a soft card (matches camera card visuals). */
+
+/* ===========================
+   UPLOADER CARD (LEFT COLUMN)
+   =========================== */
+
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
@@ -168,22 +160,21 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   color: #6b7280;
   box-sizing: border-box;
 
-  margin: 0 !important; /* prevent Streamlit from injecting surprise spacing */
+  margin: 0 !important; /* prevent Streamlit surprises */
 }
 
-/* Text inside the camera card */
+/* Text inside camera card */
 .camera-hint {
   font-size: 0.875rem;
   line-height: 1.4;
   color: #6b7280;
   margin: 0;
 
-  /* On desktop we float the "Open camera" button to the top-right.
-     Give the text body some breathing room so it doesn't overlap. */
+  /* Make room for the "Open camera" button on desktop */
   padding-right: 150px;
 }
 
-/* "Open camera" button styling */
+/* "Open camera" button */
 .custom-cam-btn {
   position: absolute;
   right: 16px;
@@ -227,12 +218,13 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
     margin-top: .5rem !important;
   }
 
-  /* On narrow screens, we don't want a giant vertical gap between
-     the right header and the right card. So reduce that margin. */
-  .leaf-right div.stMarkdown:has(.block-card) {
-    margin-top: 16px !important;
+  /* On narrow screens, we don't want a huge offset,
+     so shrink the spacer. */
+  .right-spacer {
+    height: 16px;
   }
 }
+
 
 </style>
 """, unsafe_allow_html=True)
@@ -439,6 +431,7 @@ with left:
 with right:
     st.markdown('<div class="leaf-right"><div class="leaf-block">', unsafe_allow_html=True)
 
+    # Header (stays where it is)
     st.markdown(
         '<div class="block-head">'
         '<div class="title">Record Photo</div>'
@@ -447,7 +440,11 @@ with right:
         unsafe_allow_html=True
     )
 
+    # NEW: spacer to push the card down
+    st.markdown('<div class="right-spacer"></div>', unsafe_allow_html=True)
+
     if not st.session_state.show_camera:
+        # Camera closed view
         st.markdown(
             '<div class="block-card">'
             '  <div class="camera-card">'
@@ -476,6 +473,7 @@ with right:
 
         cap = None
     else:
+        # Camera open view
         st.markdown('<div class="block-card">', unsafe_allow_html=True)
 
         cap = st.camera_input("", key="camera_input")
@@ -483,12 +481,13 @@ with right:
             st.session_state.captured = cap
             st.session_state.source = "camera"
             if not st.session_state.keep_camera_on:
-                close_camera()
+                st.session_state.show_camera = False
 
-        st.button("Close camera", on_click=close_camera, key="close_cam_btn")
+        st.button("Close camera", on_click=lambda: setattr(st.session_state, "show_camera", False), key="close_cam_btn")
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('</div></div>', unsafe_allow_html=True)  # close leaf-block + leaf-right
+
 
 # Pick active file
 file = st.session_state.captured if st.session_state.source == "camera" else (
