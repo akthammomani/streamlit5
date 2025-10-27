@@ -47,6 +47,9 @@ div.stButton > button { margin-top:4px; }                     /* <<< align butto
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("<style>.section .sub + div{ margin-top:.25rem !important; }</style>", unsafe_allow_html=True)
+
+
 
 if Path(BANNER).exists():
     st.image(BANNER, use_container_width=True)
