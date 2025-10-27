@@ -225,7 +225,7 @@ with left:
     st.markdown("</div>", unsafe_allow_html=True)
 
 with right:
-    st.write("")
+    #st.write("")
     st.markdown('<div class="section"><div class="title">Record Photo</div>'
                 '<div class="sub">Use your device camera</div>', unsafe_allow_html=True)
 
