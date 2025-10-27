@@ -68,6 +68,11 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
   .camera-hint{ padding-right:0; }
   .custom-cam-btn { position: static !important; margin-top:.5rem !important; }
 }
+
+/* Match spacing in Upload and Camera cards */
+.upload-section > div[data-testid="stFileUploader"] {
+  margin-top: 0 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -240,10 +245,15 @@ st.subheader("Add a leaf photo")
 left, right = st.columns([1,1], gap="large")
 
 with left:
-    st.markdown('<div class="section"><div class="title">Upload Photo</div>'
-                '<div class="sub">Drop a JPG/PNG here, or browse</div>', unsafe_allow_html=True)
-    st.file_uploader(label="", type=["jpg","jpeg","png"], key="uploader", on_change=on_upload_change)
+    st.markdown(
+        '<div class="section upload-section">'
+        '<div class="title">Upload Photo</div>'
+        '<div class="sub">Drop a JPG/PNG here, or browse</div>',
+        unsafe_allow_html=True
+    )
+    st.file_uploader(label="", type=["jpg", "jpeg", "png"], key="uploader", on_change=on_upload_change)
     st.markdown("</div>", unsafe_allow_html=True)
+
 
 with right:
     st.markdown('<div class="section"><div class="title">Record Photo</div>'
