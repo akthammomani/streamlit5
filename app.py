@@ -39,11 +39,15 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
   border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px; padding:12px;
 }
 
-/* Make camera block visually identical to the dropzone */
+/* Camera row wrapper + card */
+.camera-row{ position:relative; margin-top:.25rem; }
 .camera-card{
-  border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px; padding:12px;
-  display:flex; align-items:center; justify-content:flex-start; gap:.5rem;
-  margin-top:.25rem; min-height:64px;  /* same top gap & height as uploader */
+  border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px; padding:14px 12px;
+  min-height:64px; display:flex; align-items:center; color:#6b7280;
+}
+/* Put the next Streamlit button INSIDE the card (top-right) */
+.camera-row .stButton>button{
+  position:absolute; right:12px; top:12px; margin:0;
 }
 .camera-card .stButton>button{ margin:0; }
 </style>
@@ -228,12 +232,13 @@ with right:
     st.markdown('<div class="section"><div class="title">Record Photo</div>'
                 '<div class="sub">Use your device camera</div>', unsafe_allow_html=True)
     if not st.session_state.show_camera:
-        st.markdown('<div class="camera-card">', unsafe_allow_html=True)
-        st.button("Open camera", on_click=open_camera)
+        st.markdown('<div class="camera-row">', unsafe_allow_html=True)
+        st.markdown('<div class="camera-card">Tap “Open camera” to take a photo.</div>', unsafe_allow_html=True)
+        st.button("Open camera", on_click=open_camera)           # gets positioned inside the card by CSS
         st.markdown('</div>', unsafe_allow_html=True)
         cap = None
     else:
-        st.camera_input("", key="camera_input")
+        cap = st.camera_input("", key="camera_input")
         if st.button("Close camera"): close_camera()
     st.markdown("</div>", unsafe_allow_html=True)
 
