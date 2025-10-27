@@ -556,14 +556,14 @@ if file:
 
     # -------- Row 3: Poster image --------
     poster_path = CARE_POSTERS.get(pred_label, CARE_POSTERS["healthy"])
-    st.write("""
-    ###### ***Disclaimer***
-    *This app is not a substitute for professional agricultural advice, diagnosis, or treatment. Field conditions, pests, and diseases can vary widely. Always consult a qualified agronomist, crop advisor, or local extension service before making decisions that could affect tree health, spray plans, or harvest.*
-    """)
     if not Path(poster_path).exists():
         st.info("Care poster not found. Please add the JPGs next to app.py.")
     else:
         st.image(poster_path, use_container_width=True)
+        st.write("""
+        ###### ***Disclaimer***
+        *This app is not a substitute for professional agricultural advice, diagnosis, or treatment. Field conditions, pests, and diseases can vary widely. Always consult a qualified agronomist, crop advisor, or local extension service before making decisions that could affect tree health, spray plans, or harvest.*
+        """)
 
 else:
     st.info("Upload a photo or open the camera to begin.")
