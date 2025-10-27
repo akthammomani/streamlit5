@@ -10,6 +10,51 @@ import torch
 import torchvision.transforms as T
 import base64
 
+# ---------- UI styles for cards and bars ----------
+st.markdown("""
+<style>
+.card { background:#F3F4F6; border:1.5px solid #D1D5DB; border-radius:18px; padding:18px; }
+.card h3 { margin:0 0 .5rem 0; }
+.prob-title { font-weight:600; margin:.75rem 0 .5rem 0; color:#374151; }
+.bar-row { display:flex; align-items:center; margin:.35rem 0; gap:.5rem; font-size:.95rem; }
+.bar-label { width:88px; color:#374151; white-space:nowrap; }
+.bar-rail { flex:1; height:10px; border-radius:999px; background:#E5E7EB; overflow:hidden; }
+.bar-fill { height:100%; border-radius:999px; background:#2563EB; } /* default blue */
+.bar-pct { width:54px; text-align:right; color:#374151; }
+.poster { background:#F9FAFB; border:1.5px solid #E5E7EB; border-radius:18px; padding:12px; }
+.poster img { border-radius:14px; width:100%; height:auto; display:block; }
+.section-title { font-size:1.15rem; font-weight:800; margin-bottom:.5rem; }
+</style>
+""", unsafe_allow_html=True)
+
+CARE_POSTERS = {
+    "black_rot": "black_rot_care.jpg",
+    "healthy":   "healthy_care.jpg",
+    "scab":      "scab_care.jpg",
+    "rust":      "rust_care.jpg",
+}
+
+def _pretty(lab:str)->str:
+    return lab.replace("_"," ").title()
+
+def render_prob_bars(prob_map: dict):
+    # prob_map = {label: prob_float}
+    order = ["black_rot","healthy","scab","rust"]  # fixed order to match your mock
+    html = ['<div class="prob-title">Apple Disease Probability</div>']
+    for lab in order:
+        p = float(prob_map.get(lab, 0.0))
+        pct = f"{p*100:.1f}%"
+        width = int(round(p*100))
+        html.append(f"""
+          <div class="bar-row">
+            <div class="bar-label">{_pretty(lab)}</div>
+            <div class="bar-rail"><div class="bar-fill" style="width:{width}%;"></div></div>
+            <div class="bar-pct">{pct}</div>
+          </div>
+        """)
+    st.markdown("".join(html), unsafe_allow_html=True)
+
+
 # -------------------- Paths --------------------
 ART = Path("Data_Directory/artifacts")
 TS_PATH   = ART / "model.torchscript.pt"
@@ -281,7 +326,7 @@ file = st.session_state.captured if st.session_state.source == "camera" else (
 if file:
     pil = load_pil(file)
 
-    # Brightness check for both sources
+    # Brightness checks (unchanged)
     b = compute_brightness(pil)
     if b < dark_thr:
         st.warning(f"Image appears too dark (brightness {b:.2f}). Retake under brighter, even lighting.")
@@ -290,7 +335,7 @@ if file:
         st.warning(f"Image appears too bright/washed-out (brightness {b:.2f}). Retake avoiding direct glare.")
         st.stop()
 
-    # Leaf-likeness gate ONLY for camera
+    # Leaf-likeness gate ONLY for camera (unchanged)
     if st.session_state.source == "camera":
         bypass_gate = st.checkbox("Bypass leaf check for this camera image", value=False)
         ok_leaf, cov, tex = is_leaf_like(pil, cov_min=cov_min, cov_max=0.98, tex_min=tex_min)
@@ -301,22 +346,37 @@ if file:
             )
             st.stop()
 
-    c1, c2 = st.columns([1,1])
-    with c1:
-        st.image(pil, caption="Input", use_container_width=True)
-
+    # Inference
     probs = predict_probs(pil)
     pred_label, pred_conf, _ = decide(probs, labels, THRESHOLD)
 
-    order = np.argsort(probs)[::-1]
-    df = pd.DataFrame([(labels[i], float(probs[i])) for i in order[:4]],
-                      columns=["label","probability"])
+    # Build a dict for bars
+    prob_map = {lab: float(probs[i]) for i, lab in enumerate(labels)}
 
-    with c2:
-        st.metric("Decision", pred_label, delta=f"{pred_conf:.3f}")
-        st.dataframe(df.style.format({"probability":"{:.3f}"}), use_container_width=True)
+    # --- Layout: Two panels ---
+    left_col, right_col = st.columns([1,1], gap="large")
 
-    render_care(pred_label)
-    st.caption("Calibrated ResNet-18 (TorchScript). Low-confidence predictions route to ‘unknown’.")
+    with left_col:
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Your Image:</div>', unsafe_allow_html=True)
+        st.image(pil, use_container_width=True)
+        st.markdown(
+            f"<h3>Predicted Apple Disease Label is:<br>"
+            f"{_pretty(pred_label)} with {pred_conf*100:.0f}% Confidence</h3>",
+            unsafe_allow_html=True
+        )
+        render_prob_bars(prob_map)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with right_col:
+        # Choose poster: if unknown, show the 'healthy' guidance as a neutral fallback
+        poster_path = CARE_POSTERS.get(pred_label, CARE_POSTERS["healthy"])
+        if not Path(poster_path).exists():
+            st.info("Care poster not found. Please add the JPGs next to app.py.")
+        st.markdown('<div class="poster">', unsafe_allow_html=True)
+        st.image(poster_path, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    st.caption("Model: Calibrated ResNet-18 (TorchScript). Low-confidence predictions route to ‘unknown’.")
 else:
     st.info("Upload a photo or open the camera to begin.")
