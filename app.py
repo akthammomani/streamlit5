@@ -454,9 +454,10 @@ with right:
     st.markdown('<div class="leaf-right"><div class="leaf-block">', unsafe_allow_html=True)
 
     # Header (stays where it is)
+    st.markdown('<div class="title">Record Photo</div>', unsafe_allow_html=True)
     st.markdown(
         '<div class="block-head">'
-        '<div class="title">Record Photo</div>'
+        #'<div class="title">Record Photo</div>'
         '<div class="sub">Use your device camera</div>'
         '</div>',
         unsafe_allow_html=True
