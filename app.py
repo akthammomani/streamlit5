@@ -28,30 +28,49 @@ st.set_page_config(
     layout="wide",
 )
 
-# Card‑like look for uploader and camera
+# 🔥 Unified layout / spacing / visuals for uploader + camera
 st.markdown("""
 <style>
-/* Global override: kill spacing between columns */
-div[data-testid="column"] > div {
+
+/* 1. Kill Streamlit's default top padding inside each column */
+div[data-testid="column"] > div:first-child {
   margin-top: 0 !important;
   padding-top: 0 !important;
 }
 
-/* Upload section: custom spacing + consistent typography */
-.upload-section .title {
-  font-size: 1.4rem;
-  font-weight: 700;
-  margin: 0 0 .15rem 0;
-  color: #2c313f;
-}
-.upload-section .sub {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 0 0 .5rem 0;
+/* 2. Shared block wrapper for both LEFT (upload) and RIGHT (camera) */
+.form-block {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;        /* tight vertical rhythm between title, sub, card */
+  margin: 0;
+  padding: 0;
 }
 
-/* Strip all vertical spacing around uploader */
-.upload-section,
+/* Camera column tends to float a bit higher; push it down a hair
+   so "Record Photo" lines up with "Upload Photo" */
+.camera-section {
+  margin-top: .4rem;   /* ~6px nudge down */
+}
+
+/* 3. Consistent title + subtitle text */
+.form-block .title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #2c313f;
+  margin: 0;
+}
+
+.form-block .sub {
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* 4. Strip any extra margin Streamlit injects above/below uploader */
 .upload-wrapper,
 .upload-wrapper > div[data-testid="stFileUploader"],
 .upload-wrapper section[data-testid="stFileUploaderDropzone"] {
@@ -61,7 +80,7 @@ div[data-testid="column"] > div {
   padding-bottom: 0 !important;
 }
 
-/* Uploader visual styling */
+/* 5. Make the uploader dropzone look like a neat card */
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
@@ -69,36 +88,56 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   padding: 12px;
 }
 
-/* Camera card styling */
+/* 6. Camera card gets the SAME visual language as uploader */
 .camera-card {
   position: relative;
+  display: flex;
+  align-items: flex-start;
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
   border-radius: 12px;
+  padding: 16px 12px;
   min-height: 64px;
-  padding: 16px;
   color: #6b7280;
-}
-.camera-hint {
-  padding-right: 160px;
+  box-sizing: border-box;
 }
 
-/* Camera button */
+/* Text inside camera card */
+.camera-hint {
+  font-size: 0.875rem;
+  line-height: 1.4;
+  padding-right: 150px; /* reserve space so button can sit on top-right */
+  margin: 0;
+  color: #6b7280;
+}
+
+/* 7. "Open camera" button style (mirrors Streamlit's neutral button look) */
 .custom-cam-btn {
+  position: absolute;
+  right: 16px;
+  top: 8px;
   background: #ffffff;
   color: #111827;
+  font-size: 0.875rem;
+  line-height: 1.2;
   border: 1px solid #D1D5DB;
   border-radius: 8px;
-  padding: .4rem .8rem;
+  padding: .45rem .8rem;
   cursor: pointer;
+  white-space: nowrap;
 }
 .custom-cam-btn:hover {
   border-color: #9CA3AF;
 }
 
-/* Responsive */
+/* 8. Mobile tweaks: stack nicely, don't absolutely position button */
 @media (max-width: 680px) {
-  .camera-hint { padding-right: 0; }
+  .camera-card {
+    flex-direction: column;
+  }
+  .camera-hint {
+    padding-right: 0;
+  }
   .custom-cam-btn {
     position: static !important;
     margin-top: .5rem !important;
@@ -106,12 +145,6 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
 }
 </style>
 """, unsafe_allow_html=True)
-
-
-
-
-
-
 
 if Path(BANNER).exists():
     st.image(BANNER, use_container_width=True)
@@ -217,8 +250,10 @@ def render_prob_bars_native(prob_map: dict):
         c1, c2, c3 = st.columns([1.6, 6, 1.2])
         with c1: st.write(_pretty(lab))
         with c2:
-            try: st.progress(p)
-            except Exception: st.progress(int(p*100))
+            try:
+                st.progress(p)
+            except Exception:
+                st.progress(int(p*100))
         with c3: st.write(f"{p*100:.1f}%")
 
 # -------------------- Posters --------------------
@@ -264,7 +299,7 @@ def sidebar_logo(title:str, path:str):
     )
 
 with st.sidebar:
-    sidebar_logo("AI‑Powered Apple Leaf Specialist", APP_LOGO)
+    sidebar_logo("AI-Powered Apple Leaf Specialist", APP_LOGO)
     st.subheader("Settings")
     THRESHOLD = st.slider("Decision threshold (τ)", 0.0, 0.99, 0.85, 0.01)
     dark_thr   = st.slider("Too dark threshold", 0.05, 0.50, 0.25, 0.01)
@@ -282,26 +317,32 @@ st.subheader("Add a leaf photo")
 left, right = st.columns([1,1], gap="large")
 
 with left:
-    st.markdown('<div class="upload-section">', unsafe_allow_html=True)
+    # LEFT COLUMN = Upload block
+    st.markdown('<div class="form-block upload-section">', unsafe_allow_html=True)
     st.markdown('<div class="title">Upload Photo</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub">Drop a JPG/PNG here, or browse</div>', unsafe_allow_html=True)
+
     st.markdown('<div class="upload-wrapper">', unsafe_allow_html=True)
-    st.file_uploader(label="", type=["jpg", "jpeg", "png"], key="uploader", on_change=on_upload_change)
-    st.markdown("</div></div>", unsafe_allow_html=True)
-
-
+    st.file_uploader(
+        label="",
+        type=["jpg", "jpeg", "png"],
+        key="uploader",
+        on_change=on_upload_change
+    )
+    st.markdown('</div></div>', unsafe_allow_html=True)
 
 with right:
-    st.markdown('<div class="section"><div class="title">Record Photo</div>'
-                '<div class="sub">Use your device camera</div>', unsafe_allow_html=True)
+    # RIGHT COLUMN = Camera block
+    st.markdown('<div class="form-block camera-section">', unsafe_allow_html=True)
+    st.markdown('<div class="title">Record Photo</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub">Use your device camera</div>', unsafe_allow_html=True)
 
     if not st.session_state.show_camera:
+        # Camera closed: show hint card + button
         st.markdown("""
             <div class="camera-card">
-              <div class="camera-hint">Tap “Open camera” to take a photo.</div>
-              <button id="open_cam_real" class="custom-cam-btn" style="position:absolute; right:18px; top:8px;">
-                Open camera
-              </button>
+              <p class="camera-hint">Tap “Open camera” to take a photo.</p>
+              <button id="open_cam_real" class="custom-cam-btn">Open camera</button>
             </div>
         """, unsafe_allow_html=True)
 
@@ -323,6 +364,7 @@ with right:
 
         cap = None
     else:
+        # Camera open: show Streamlit camera_input
         cap = st.camera_input("", key="camera_input")
         if cap is not None:
             st.session_state.captured = cap
@@ -331,7 +373,7 @@ with right:
                 close_camera()
         st.button("Close camera", on_click=close_camera, key="close_cam_btn")
 
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # Active source
 file = st.session_state.captured if st.session_state.source == "camera" else (
@@ -348,7 +390,7 @@ if file:
         st.warning(f"Image appears too dark (brightness {b:.2f}). Retake under brighter, even lighting.")
         st.stop()
     if b > bright_thr:
-        st.warning(f"Image appears too bright/washed‑out (brightness {b:.2f}). Retake avoiding direct glare.")
+        st.warning(f"Image appears too bright/washed-out (brightness {b:.2f}). Retake avoiding direct glare.")
         st.stop()
     if st.session_state.source == "camera":
         bypass_gate = st.checkbox("Bypass leaf check for this camera image", value=False)
@@ -375,7 +417,7 @@ if file:
         st.markdown("### Predicted Apple Disease Label is:")
         st.markdown(f"**{_pretty(pred_label)}** with **{pred_conf*100:.0f}%** Confidence")
         render_prob_bars_native(prob_map)
-        st.caption("Model: Calibrated ResNet‑18 (TorchScript). Low‑confidence predictions route to ‘unknown’.")
+        st.caption("Model: Calibrated ResNet-18 (TorchScript). Low-confidence predictions route to ‘unknown’.")
     vspace(3)
 
     # -------- Row 2: Title --------
