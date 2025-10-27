@@ -265,8 +265,7 @@ if file:
     r1_left, r1_right = st.columns([1,1], gap="large")
     with r1_left:
         st.markdown("### Your Image:")
-        disp = preview_image(pil, PREVIEW_MAX_W, PREVIEW_MAX_H)  # tunable, no stretch
-        st.image(disp, use_container_width=False)
+        st.image(pil, width=360)   
 
     with r1_right:
         st.markdown("## Predicted Apple Disease Label is:")
