@@ -546,10 +546,7 @@ if file:
         render_prob_bars_native(prob_map)
         st.write("#### Learn More")
         st.markdown("[![](https://img.shields.io/badge/GitHub%20-Calibrated%20ResNet‑18%20Model-informational)](https://github.com/akthammomani/ai_powered_apple_leaf_specialist)")
-        st.write("""
-        ###### ***Disclaimer***
-        *This app is not a substitute for professional agricultural advice, diagnosis, or treatment. Field conditions, pests, and diseases can vary widely. Always consult a qualified agronomist, crop advisor, or local extension service before making decisions that could affect tree health, spray plans, or harvest.*
-        """)
+
         #st.caption("Model: Calibrated ResNet‑18 (TorchScript). Low‑confidence predictions route to ‘unknown’.")
     #vspace(3)
 
@@ -559,6 +556,10 @@ if file:
 
     # -------- Row 3: Poster image --------
     poster_path = CARE_POSTERS.get(pred_label, CARE_POSTERS["healthy"])
+    st.write("""
+    ###### ***Disclaimer***
+    *This app is not a substitute for professional agricultural advice, diagnosis, or treatment. Field conditions, pests, and diseases can vary widely. Always consult a qualified agronomist, crop advisor, or local extension service before making decisions that could affect tree health, spray plans, or harvest.*
+    """)
     if not Path(poster_path).exists():
         st.info("Care poster not found. Please add the JPGs next to app.py.")
     else:
