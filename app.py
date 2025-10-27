@@ -31,79 +31,82 @@ st.set_page_config(
 # Card‑like look for uploader and camera
 st.markdown("""
 <style>
-/* Typography Consistency */
+/* Typography to match both sections */
 .upload-section .title,
 .upload-section .sub {
   font-family: inherit;
-  font-size: 1rem !important;
-  font-weight: 600 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Remove ALL vertical spacing */
-.upload-section,
-.upload-wrapper,
-.upload-wrapper > div[data-testid="stFileUploader"],
-.upload-wrapper section[data-testid="stFileUploaderDropzone"] {
-  margin-top: 0 !important;
-  padding-top: 0 !important;
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
-}
-
-/* Reduce vertical spacing between title/subtext and uploader box */
-.upload-section .sub {
-  margin-bottom: 6px !important;
-}
-
-/* Uploader styling */
-div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
-  border:1.5px solid #E6E9EF;
-  background:#F6F8FB;
-  border-radius:12px;
-  padding:12px;
-}
-
-/* Camera card styling (untouched) */
-.camera-card {
-  position:relative;
-  border:1.5px solid #E6E9EF;
-  background:#F6F8FB;
-  border-radius:12px;
-  min-height:64px;
-  padding:16px;
-  color:#6b7280;
-}
-.camera-hint { padding-right:160px; }
-
-/* Camera button */
-.custom-cam-btn {
-  background:#ffffff;
-  color:#111827;
-  border:1px solid #D1D5DB;
-  border-radius:8px;
-  padding:.4rem .8rem;
-  cursor:pointer;
-}
-.custom-cam-btn:hover {
-  border-color:#9CA3AF;
-}
-
-/* Responsive fix */
-@media (max-width:680px) {
-  .camera-hint{ padding-right:0; }
-  .custom-cam-btn { position:static !important; margin-top:.5rem !important; }
-}
-
-.upload-section .title {
   font-size: 1.4rem;
   font-weight: 700;
   margin: 0 0 .15rem 0;
   color: #2c313f;
 }
+.upload-section .sub {
+  font-size: 0.875rem;
+  font-weight: normal;
+  color: #6b7280;
+  margin-bottom: .25rem;
+}
+
+/* Remove vertical spacing */
+.upload-section,
+.upload-wrapper,
+.upload-wrapper > div[data-testid="stFileUploader"],
+.upload-wrapper section[data-testid="stFileUploaderDropzone"] {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* NEW: Remove spacing from column container */
+div[data-testid="column"] > div {
+  margin-top: -16px !important;
+}
+
+/* Uploader box card */
+div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
+  border: 1.5px solid #E6E9EF;
+  background: #F6F8FB;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+/* Camera card (untouched) */
+.camera-card {
+  position: relative;
+  border: 1.5px solid #E6E9EF;
+  background: #F6F8FB;
+  border-radius: 12px;
+  min-height: 64px;
+  padding: 16px;
+  color: #6b7280;
+}
+.camera-hint { padding-right: 160px; }
+
+/* Camera button */
+.custom-cam-btn {
+  background: #ffffff;
+  color: #111827;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  padding: .4rem .8rem;
+  cursor: pointer;
+}
+.custom-cam-btn:hover {
+  border-color: #9CA3AF;
+}
+
+/* Responsive camera padding */
+@media (max-width: 680px) {
+  .camera-hint { padding-right: 0; }
+  .custom-cam-btn {
+    position: static !important;
+    margin-top: .5rem !important;
+  }
+}
 </style>
 """, unsafe_allow_html=True)
+
 
 
 if Path(BANNER).exists():
