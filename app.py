@@ -26,7 +26,7 @@ st.set_page_config(
     layout="wide",
 )
 
-# -------------------- CSS (alignment fix is here) --------------------
+# -------------------- CSS --------------------
 st.markdown("""
 <style>
 
@@ -36,27 +36,30 @@ div[data-testid="column"] > div:first-child {
   padding-top: 0 !important;
 }
 
-/* Shared block for each column (left and right) */
+/* Each column becomes a 2-row grid:
+   row 1 = header (fixed 60px height)
+   row 2 = card (auto)
+   This guarantees both gray cards line up horizontally. */
 .leaf-block {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;              /* controlled space between header and gray card */
+  display: grid;
+  grid-template-rows: 60px auto;  /* <-- HARD SYNC between left/right */
+  row-gap: 8px;
   margin: 0;
   padding: 0;
 }
 
-/* Row 1 in each column: title + subtitle */
+/* Header row */
 .block-head {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  height: 60px;   /* <-- lock exact height in BOTH columns */
   margin: 0;
   padding: 0;
-  min-height: 48px;      /* <<< KEY: lock both column headers to SAME height */
   line-height: 1.4;
 }
 
-/* Typography */
+/* Title + subtitle */
 .block-head .title {
   font-size: 1rem;
   font-weight: 600;
@@ -72,7 +75,7 @@ div[data-testid="column"] > div:first-child {
   line-height: 1.4;
 }
 
-/* Row 2 in each column: card wrapper */
+/* Card row */
 .block-card {
   margin: 0 !important;
   padding: 0 !important;
@@ -86,7 +89,7 @@ div[data-testid="column"] > div:first-child {
   padding: 0 !important;
 }
 
-/* Uploader gray card look */
+/* Uploader gray card */
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
@@ -94,7 +97,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   padding: 12px;
 }
 
-/* Camera gray card: match uploader style exactly */
+/* Camera gray card: match uploader style */
 .camera-card {
   position: relative;
   display: flex;
@@ -106,15 +109,14 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   min-height: 64px;
   color: #6b7280;
   box-sizing: border-box;
-
-  margin: 0 !important;      /* <<< NO weird offset */
+  margin: 0 !important;
 }
 
 /* Text inside camera card */
 .camera-hint {
   font-size: 0.875rem;
   line-height: 1.4;
-  padding-right: 150px;       /* room for button on desktop */
+  padding-right: 150px;   /* room for button on desktop */
   margin: 0;
   color: #6b7280;
 }
@@ -323,7 +325,7 @@ with left:
     # LEFT COLUMN (Upload)
     st.markdown('<div class="leaf-block">', unsafe_allow_html=True)
 
-    # Header row
+    # Row 1: header (fixed-height grid row)
     st.markdown(
         '<div class="block-head">'
         '<div class="title">Upload Photo</div>'
@@ -332,7 +334,7 @@ with left:
         unsafe_allow_html=True
     )
 
-    # Gray card row
+    # Row 2: gray card row
     st.markdown('<div class="block-card upload-wrapper">', unsafe_allow_html=True)
     st.file_uploader(
         label="",
@@ -340,7 +342,7 @@ with left:
         key="uploader",
         on_change=on_upload_change
     )
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)  # close block-card
 
     st.markdown('</div>', unsafe_allow_html=True)  # close leaf-block
 
@@ -348,7 +350,7 @@ with right:
     # RIGHT COLUMN (Camera)
     st.markdown('<div class="leaf-block">', unsafe_allow_html=True)
 
-    # Header row
+    # Row 1: header (fixed-height grid row)
     st.markdown(
         '<div class="block-head">'
         '<div class="title">Record Photo</div>'
@@ -357,7 +359,7 @@ with right:
         unsafe_allow_html=True
     )
 
-    # Gray card row
+    # Row 2: gray card row
     if not st.session_state.show_camera:
         st.markdown(
             '<div class="block-card">'
@@ -398,11 +400,11 @@ with right:
 
         st.button("Close camera", on_click=close_camera, key="close_cam_btn")
 
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)  # close block-card
 
     st.markdown('</div>', unsafe_allow_html=True)  # close leaf-block
 
-# Figure out which file to run inference on
+# Pick active file
 file = st.session_state.captured if st.session_state.source == "camera" else (
     st.session_state.upload if st.session_state.source == "upload" else None
 )
@@ -411,7 +413,6 @@ file = st.session_state.captured if st.session_state.source == "camera" else (
 if file:
     pil = load_pil(file)
 
-    # quality gates
     b = compute_brightness(pil)
     if b < dark_thr:
         st.warning(f"Image appears too dark (brightness {b:.2f}). Retake under brighter, even lighting.")
@@ -434,7 +435,6 @@ if file:
     pred_label, pred_conf, _ = decide(probs, labels, THRESHOLD)
     prob_map = {lab: float(probs[i]) for i, lab in enumerate(labels)}
 
-    # row: preview + prediction
     r1_left, r1_right = st.columns([1,1], gap="large")
     with r1_left:
         st.markdown("### Your Image:")
@@ -447,7 +447,6 @@ if file:
         st.caption("Model: Calibrated ResNet-18 (TorchScript). Low-confidence predictions route to ‘unknown’.")
     vspace(3)
 
-    # care recommendations
     st.markdown(f"### Apple – {_pretty(pred_label)} Care Recommendations:")
     vspace(2)
 
