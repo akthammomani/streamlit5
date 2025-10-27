@@ -30,20 +30,23 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-/* Remove Streamlit default top padding in each column container */
+/* Remove Streamlit's default extra top padding in each column */
 div[data-testid="column"] > div:first-child {
   margin-top: 0 !important;
   padding-top: 0 !important;
 }
 
-/* Left/right column wrappers */
+/* Column wrappers */
 .leaf-left { /* left column wrapper */ }
+
 .leaf-right {
-  /* right column wrapper */
-  margin-top: 52px;  /* <-- NEW: push the whole camera column down */
+  margin-top: 0; /* don't shift the whole right column down anymore */
 }
 
-/* Each column block content */
+/* Each column's inner block layout:
+   - Row 1: header text (title + sub)
+   - Row 2: the gray card (uploader or camera)
+*/
 .leaf-block {
   display: grid;
   grid-template-rows: auto auto;
@@ -52,7 +55,7 @@ div[data-testid="column"] > div:first-child {
   padding: 0;
 }
 
-/* Header row */
+/* Header row (title + subtitle) */
 .block-head {
   display: flex;
   flex-direction: column;
@@ -62,34 +65,46 @@ div[data-testid="column"] > div:first-child {
   line-height: 1.4;
 }
 
-/* Title + subtitle */
+/* Header title */
 .block-head .title {
   font-size: 1rem;
   font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-  line-height: 1.4;
-}
-.block-head .sub {
-  font-size: 0.875rem;
-  font-weight: 400;
-  color: #6b7280;
+  color: #1f2937;      /* slate-800 */
   margin: 0;
   line-height: 1.4;
 }
 
-/* Card row wrapper */
+/* Header subtitle */
+.block-head .sub {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #6b7280;      /* gray-500/600 */
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Card row wrapper (2nd row in each column) */
 .block-card {
   margin: 0 !important;
   padding: 0 !important;
 }
 
-/* Kill Streamlit's default top margin on the uploader so the gray box hugs the header */
+/* 🔥 Alignment fix:
+   Only on the RIGHT column, push the card (not the header) down.
+   Tweak 45px slightly if you're off by 1-2px on your screen.
+*/
+.leaf-right .block-card {
+  margin-top: 45px !important;
+}
+
+/* Streamlit's file uploader injects its own top margin.
+   Kill it so the upload card hugs the header properly.
+*/
 .leaf-left div[data-testid="stFileUploader"] {
   margin-top: 0 !important;
 }
 
-/* Uploader cleanup */
+/* Clean up uploader block spacing */
 .upload-wrapper,
 .upload-wrapper > div[data-testid="stFileUploader"],
 .upload-wrapper section[data-testid="stFileUploaderDropzone"] {
@@ -97,7 +112,7 @@ div[data-testid="column"] > div:first-child {
   padding: 0 !important;
 }
 
-/* Uploader gray card look */
+/* Uploader gray card appearance */
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
@@ -105,7 +120,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   padding: 12px;
 }
 
-/* Camera gray card: match uploader style */
+/* Camera gray card: match uploader look */
 .camera-card {
   position: relative;
   display: flex;
@@ -120,11 +135,11 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   margin: 0 !important;
 }
 
-/* Text inside camera card */
+/* Text inside the camera card */
 .camera-hint {
   font-size: 0.875rem;
   line-height: 1.4;
-  padding-right: 150px;
+  padding-right: 150px;   /* leave space for the button on desktop */
   margin: 0;
   color: #6b7280;
 }
@@ -160,7 +175,14 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
     position: static !important;
     margin-top: .5rem !important;
   }
+
+  /* On narrow screens, that 45px offset is too much spacing.
+     You can safely drop it so the two cards just stack. */
+  .leaf-right .block-card {
+    margin-top: 16px !important;
+  }
 }
+
 </style>
 """, unsafe_allow_html=True)
 
