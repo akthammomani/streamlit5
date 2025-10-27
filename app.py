@@ -42,32 +42,22 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
 }
 
 /* Camera card */
-.camera-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px;
-  border: 1.5px solid #E6E9EF;
-  background: #F6F8FB;
-  border-radius: 12px;
-  min-height: 64px;
-  box-sizing: border-box;
+.camera-card{
+  position:relative;
+  border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px;
+  min-height:64px; padding:16px; color:#6b7280;
 }
 /* keep room for the button */
-.camera-hint {
-  font-size: 14px;
-  color: #6b7280;
-  line-height: 1.3;
+.camera-hint{ padding-right:160px; }
 
 /* Button inside camera card */
 .custom-cam-btn {
-  background: #ffffff;
-  color: #111827;
-  border: 1px solid #D1D5DB;
-  border-radius: 8px;
-  padding: .4rem .8rem;
-  cursor: pointer;
-  font-size: 14px;
+  background:#ffffff;
+  color:#111827;
+  border:1px solid #D1D5DB;
+  border-radius:8px;
+  padding:.4rem .8rem;
+  cursor:pointer;
 }
 .custom-cam-btn:hover {
   border-color:#9CA3AF;
@@ -263,7 +253,9 @@ with right:
         st.markdown("""
             <div class="camera-card">
               <div class="camera-hint">Tap “Open camera” to take a photo.</div>
-              <button id="open_cam_real" class="custom-cam-btn">Open camera</button>
+              <button id="open_cam_real" class="custom-cam-btn" style="position:absolute; right:18px; top:8px;">
+                Open camera
+              </button>
             </div>
         """, unsafe_allow_html=True)
 
