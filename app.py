@@ -381,7 +381,7 @@ def sidebar_logo(title: str, path: str):
         # pick the width you want (e.g. 120px, 100px, 80px...)
         img_html = (
             f'<img src="data:image/{ext};base64,{b64}" '
-            f'style="max-width:90px; height:auto; display:block;" '
+            f'style="max-width:110px; height:auto; display:block;" '
             f'alt="logo" />'
         )
     else:
