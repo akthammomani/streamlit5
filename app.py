@@ -295,6 +295,8 @@ if file:
         st.markdown('</div>', unsafe_allow_html=True)
 
     with right_col:
+        st.write("") 
+        st.write("") 
         # Choose poster: if unknown, show 'healthy' as neutral fallback
         poster_path = CARE_POSTERS.get(pred_label, CARE_POSTERS["healthy"])
         if not Path(poster_path).exists():
