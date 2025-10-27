@@ -33,19 +33,28 @@ st.markdown("""
 .section .title { font-size:1.4rem; font-weight:700; margin:0 0 .15rem 0; color:#2c313f; }
 .section .sub   { color:#6b7280; margin:0 0 .25rem 0; }
 
-/* Uploader (unchanged) */
+/* Uploader (kept) */
 div[data-testid="stFileUploader"]{ margin-top:.25rem; }
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
   border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px; padding:12px;
 }
 
-/* Camera card that mirrors uploader */
-.camera-card{
-  width:100%; border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px;
-  padding:12px; min-height:64px; margin-top:.25rem;
+/* Camera row: make it a positioning context for the button */
+.camera-row { position: relative; margin-top:.25rem; }
+
+/* Gray card identical to uploader */
+.camera-card {
+  border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px;
+  min-height:64px; padding:12px; color:#6b7280;
 }
-.camera-hint{ color:#6b7280; padding:.25rem 0; }
-.camera-btn .stButton>button{ margin:0; }   /* remove default margin */
+
+/* Reserve space so text doesn’t go under the button */
+.camera-hint { padding-right:128px; }
+
+/* Place the next Streamlit button INSIDE the row, top-right over the gray card */
+.camera-row .stButton > button {
+  position: absolute; right:12px; top:12px; margin:0;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -232,15 +241,11 @@ with right:
                 '<div class="sub">Use your device camera</div>', unsafe_allow_html=True)
 
     if not st.session_state.show_camera:
-        # Single gray card with two columns inside (left text, right button)
-        st.markdown('<div class="camera-card">', unsafe_allow_html=True)
-        cam_l, cam_r = st.columns([8, 2])
-        with cam_l:
-            st.markdown('<div class="camera-hint">Tap “Open camera” to take a photo.</div>', unsafe_allow_html=True)
-        with cam_r:
-            st.container().markdown('<div class="camera-btn">', unsafe_allow_html=True)
-            st.button("Open camera", on_click=open_camera, use_container_width=True, key="open_cam_btn")
-            st.markdown('</div>', unsafe_allow_html=True)
+        # Wrapper that positions the button over the gray card
+        st.markdown('<div class="camera-row">', unsafe_allow_html=True)
+        st.markdown('<div class="camera-card"><div class="camera-hint">'
+                    'Tap “Open camera” to take a photo.</div></div>', unsafe_allow_html=True)
+        st.button("Open camera", on_click=open_camera, key="open_cam_btn")  # positioned by CSS
         st.markdown('</div>', unsafe_allow_html=True)
         cap = None
     else:
@@ -248,6 +253,7 @@ with right:
         if st.button("Close camera", key="close_cam_btn"): close_camera()
 
     st.markdown("</div>", unsafe_allow_html=True)
+
 
 
 # Active source
