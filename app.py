@@ -535,10 +535,15 @@ if file:
     prob_map = {lab: float(probs[i]) for i, lab in enumerate(labels)}
 
     # -------- Row 1: image + prediction --------
-    r1_left, r1_right = st.columns([1,1], gap="large")
+    #r1_left, r1_right = st.columns([1,1], gap="large")
+    r1_left, med, r1_right = st.columns([0.5,0.5, 1], gap="large")
     with r1_left:
         st.markdown("### Your Image:")
         st.image(ImageOps.contain(pil, (PREVIEW_MAX_W, PREVIEW_MAX_H)), use_container_width=False)
+
+    with med:
+        st.markdown("### Learn More")
+        st.markdown("[![](https://img.shields.io/badge/GitHub%20-AI-Powered%20Apple%20Leaf%20Specialist-informational)](https://github.com/akthammomani/ai_powered_apple_leaf_specialist)")
 
     with r1_right:
         st.markdown("### Predicted Apple Disease Label is:")
