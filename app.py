@@ -26,6 +26,15 @@ st.set_page_config(
     layout="wide",
 )
 
+def open_camera():
+    st.session_state.show_camera = True
+    st.session_state.source = "camera"
+    st.session_state.upload = None
+
+def close_camera():
+    st.session_state.show_camera = False
+
+
 # -------------------- CSS --------------------
 st.markdown("""
 <style>
@@ -429,9 +438,10 @@ with left:
     st.markdown('</div></div>', unsafe_allow_html=True)  # close leaf-block + leaf-left
 
 with right:
+    # outer wrappers for styling hooks (.leaf-right .leaf-block)
     st.markdown('<div class="leaf-right"><div class="leaf-block">', unsafe_allow_html=True)
 
-    # Header stays the same
+    # heading block ("Record Photo", "Use your device camera")
     st.markdown(
         '<div class="block-head">'
         '<div class="title">Record Photo</div>'
@@ -440,11 +450,12 @@ with right:
         unsafe_allow_html=True
     )
 
-    # Spacer that vertically aligns the gray cards
+    # this spacer is what vertically lines up the two gray cards
     st.markdown('<div class="right-spacer"></div>', unsafe_allow_html=True)
 
     if not st.session_state.show_camera:
-        # The gray camera card + "Open camera" HTML button
+        # --- CAMERA CLOSED STATE -----------------
+        # gray card with hint text and an HTML "Open camera" button
         st.markdown(
             """
             <div class="block-card">
@@ -459,52 +470,62 @@ with right:
             unsafe_allow_html=True
         )
 
-        # ⬇ NEW: wait for that button click in JS and return True on click
-        js_result = st_javascript("""
-        // This code runs in the component iframe context.
-        // We 'await' a Promise that resolves when the button is clicked.
-        const btn = window.parent.document.getElementById("open_cam_real");
+        # JavaScript bridge:
+        # 1. Find our <button id="open_cam_real">
+        # 2. When it's clicked, post a message that sets this component's value to true.
+        #    streamlit_javascript will pick that up and return True to Python.
+        js_result = st_javascript(
+            """
+            (function () {
+              const btn = window.parent.document.getElementById("open_cam_real");
+              if (!btn) {
+                return false;
+              }
+              // attach click handler only once
+              if (!btn._streamlitBound) {
+                btn._streamlitBound = true;
+                btn.addEventListener("click", function () {
+                  window.parent.postMessage(
+                    { type: "streamlit:setComponentValue", value: true },
+                    "*"
+                  );
+                });
+              }
+              // we haven't clicked yet, so just return false for now
+              return false;
+            })();
+            """,
+            key="open_cam_js"
+        )
 
-        // If we can't find the button (for some reason), just resolve false.
-        if (!btn) {
-            return false;
-        }
-
-        // Return a Promise so Streamlit waits until the user clicks.
-        const clicked = await new Promise((resolve) => {
-            // only resolve once, on first click
-            btn.addEventListener("click", () => resolve(true), { once: true });
-        });
-
-        return clicked;
-        """, key="open_cam_js")
-
-        # After user clicks, js_result == True, so flip camera on
+        # If the JS click fired, the component reruns and js_result will now be True.
         if js_result:
-            st.session_state.show_camera = True
-            st.session_state.source = "camera"
-            st.session_state.upload = None
+            open_camera()  # flips session_state.show_camera = True etc.
 
-        # we haven't captured anything yet
         cap = None
 
     else:
-        # Camera is "open": show the live camera input
+        # --- CAMERA OPEN STATE -------------------
         st.markdown('<div class="block-card">', unsafe_allow_html=True)
 
+        # this renders the actual device camera input
         cap = st.camera_input("", key="camera_input")
+
         if cap is not None:
             st.session_state.captured = cap
             st.session_state.source = "camera"
-            if not st.session_state.keep_camera_on:
-                st.session_state.show_camera = False  # auto-close camera after capture
+            # auto-close camera after capture unless user asked to keep it open
+            if not st.session_state.get("keep_camera_on", False):
+                close_camera()
 
-        # button to close camera manually
-        st.button("Close camera", on_click=lambda: setattr(st.session_state, "show_camera", False), key="close_cam_btn")
+        # manual close button
+        st.button("Close camera", on_click=close_camera, key="close_cam_btn")
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('</div></div>', unsafe_allow_html=True)  # close leaf-block + leaf-right
+    # close .leaf-block and .leaf-right wrappers
+    st.markdown('</div></div>', unsafe_allow_html=True)
+
 
 # Pick active file
 file = st.session_state.captured if st.session_state.source == "camera" else (
