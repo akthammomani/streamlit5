@@ -31,81 +31,51 @@ st.set_page_config(
 # Card‑like look for uploader and camera
 st.markdown("""
 <style>
-/* Global override: kill spacing between columns */
-div[data-testid="column"] > div {
-  margin-top: 0 !important;
-  padding-top: 0 !important;
+/* ---------- Shared section typography (both columns) ---------- */
+.section { margin-bottom:.05rem; }
+.section .title{
+  font-size:1.4rem; font-weight:700; margin:0 0 .15rem 0; color:#2c313f;
+}
+.section .sub{
+  font-size:.95rem; color:#6b7280; margin:0 0 .50rem 0;  /* same gap before gray card */
 }
 
-/* Upload section: custom spacing + consistent typography */
-.upload-section .title {
-  font-size: 1.4rem;
-  font-weight: 700;
-  margin: 0 0 .15rem 0;
-  color: #2c313f;
-}
-.upload-section .sub {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 0 0 .5rem 0;
+/* Kill default top spacing that Streamlit adds inside columns */
+div[data-testid="column"] > div { margin-top:0 !important; padding-top:0 !important; }
+
+/* ---------- Upload (left) ---------- */
+.upload-section{ margin:0 !important; padding:0 !important; }
+.upload-wrapper{ margin:0 !important; padding:0 !important; }  /* gray card sits right after .sub */
+
+/* Uploader visual to match camera card */
+div[data-testid="stFileUploader"]{ margin:0 !important; }
+div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
+  border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px;
+  padding:12px; margin:0 !important;
 }
 
-/* Strip all vertical spacing around uploader */
-.upload-section,
-.upload-wrapper,
-.upload-wrapper > div[data-testid="stFileUploader"],
-.upload-wrapper section[data-testid="stFileUploaderDropzone"] {
-  margin-top: 0 !important;
-  padding-top: 0 !important;
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
+/* ---------- Camera (right) ---------- */
+.camera-card{
+  position:relative;
+  border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px;
+  padding:12px;              /* match uploader padding */
+  min-height:64px; color:#6b7280; margin:0 !important;  /* sit right after .sub */
 }
+.camera-hint{ padding-right:160px; }
 
-/* Uploader visual styling */
-div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
-  border: 1.5px solid #E6E9EF;
-  background: #F6F8FB;
-  border-radius: 12px;
-  padding: 12px;
+.custom-cam-btn{
+  background:#ffffff; color:#111827; border:1px solid #D1D5DB; border-radius:8px; padding:.4rem .8rem; cursor:pointer;
 }
+.custom-cam-btn:hover{ border-color:#9CA3AF; }
 
-/* Camera card styling */
-.camera-card {
-  position: relative;
-  border: 1.5px solid #E6E9EF;
-  background: #F6F8FB;
-  border-radius: 12px;
-  min-height: 64px;
-  padding: 16px;
-  color: #6b7280;
-}
-.camera-hint {
-  padding-right: 160px;
-}
-
-/* Camera button */
-.custom-cam-btn {
-  background: #ffffff;
-  color: #111827;
-  border: 1px solid #D1D5DB;
-  border-radius: 8px;
-  padding: .4rem .8rem;
-  cursor: pointer;
-}
-.custom-cam-btn:hover {
-  border-color: #9CA3AF;
-}
-
-/* Responsive */
-@media (max-width: 680px) {
-  .camera-hint { padding-right: 0; }
-  .custom-cam-btn {
-    position: static !important;
-    margin-top: .5rem !important;
-  }
+/* ---------- Responsive ---------- */
+@media (max-width:680px){
+  .camera-hint{ padding-right:0; }
+  .custom-cam-btn{ position:static !important; margin-top:.5rem !important; }
 }
 </style>
 """, unsafe_allow_html=True)
+
 
 
 
@@ -280,12 +250,12 @@ st.subheader("Add a leaf photo")
 left, right = st.columns([1,1], gap="large")
 
 with left:
-    st.markdown('<div class="upload-section">', unsafe_allow_html=True)
+    st.markdown('<div class="section upload-section">', unsafe_allow_html=True)
     st.markdown('<div class="title">Upload Photo</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub">Drop a JPG/PNG here, or browse</div>', unsafe_allow_html=True)
     st.markdown('<div class="upload-wrapper">', unsafe_allow_html=True)
-    st.file_uploader(label="", type=["jpg", "jpeg", "png"], key="uploader", on_change=on_upload_change)
-    st.markdown("</div></div>", unsafe_allow_html=True)
+    st.file_uploader(label="", type=["jpg","jpeg","png"], key="uploader", on_change=on_upload_change)
+    st.markdown('</div></div>', unsafe_allow_html=True)
 
 
 with right:
