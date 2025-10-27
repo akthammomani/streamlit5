@@ -345,10 +345,10 @@ def render_prob_bars_native(prob_map: dict):
 
 # -------------------- Posters --------------------
 CARE_POSTERS = {
-    "black_rot": "black_rot_care_v1.jpg",
-    "healthy":   "healthy_care_v1.jpg",
-    "scab":      "scab_care_v1.jpg",
-    "rust":      "rust_care_v1.jpg",
+    "black_rot": "black_rot_care_v2.jpg",
+    "healthy":   "healthy_care_v2.jpg",
+    "scab":      "scab_care_v2.jpg",
+    "rust":      "rust_care_v2.jpg",
 }
 
 # -------------------- Session state --------------------
