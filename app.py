@@ -275,7 +275,7 @@ if file:
     vspace(3)  # white space between rows
 
     # -------- Row 2: Title --------
-    st.markdown(f"## Apple – {{{_pretty(pred_label)}}} Care Recommendations:")
+    st.markdown(f"## Apple – {{_pretty(pred_label)}} Care Recommendations:")
     vspace(2)
 
     # -------- Row 3: Poster image --------
