@@ -547,7 +547,7 @@ if file:
         st.write("#### Learn More")
         st.markdown("[![](https://img.shields.io/badge/GitHub%20-Calibrated%20ResNet‑18%20Model-informational)](https://github.com/akthammomani/ai_powered_apple_leaf_specialist)")
         #st.caption("Model: Calibrated ResNet‑18 (TorchScript). Low‑confidence predictions route to ‘unknown’.")
-    vspace(3)
+    #vspace(3)
 
     # -------- Row 2: Title --------
     st.markdown(f"### Apple – {_pretty(pred_label)} Care Recommendations:")
