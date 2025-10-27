@@ -31,23 +31,60 @@ st.set_page_config(
 # Card‑like look for uploader and camera
 st.markdown("""
 <style>
+/* ---------------- Base Section Styling ---------------- */
 .section { margin-bottom:.05rem; }
-.section .title { font-size:1.4rem; font-weight:700; margin:0 0 .15rem 0; color:#2c313f; }
-.section .sub   { color:#6b7280; margin:0 0 .25rem 0; }
-
-/* Uploader card */
-div[data-testid="stFileUploader"]{ margin-top:.25rem; }
-div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
-  border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px; padding:12px;
+.section .title {
+  font-size:1.4rem;
+  font-weight:700;
+  margin:0 0 .15rem 0;
+  color:#2c313f;
+}
+.section .sub {
+  color:#6b7280;
+  margin:0 0 .25rem 0;
+  font-size:1rem;
+  font-weight:400;
 }
 
-/* Camera card */
+/* ---------------- Uploader Card ---------------- */
+div[data-testid="stFileUploader"]{
+  margin-top:0 !important;
+}
+div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
+  border:1.5px solid #E6E9EF;
+  background:#F6F8FB;
+  border-radius:12px;
+  padding:12px;
+}
+
+/* Make Upload Photo match Record Photo card spacing */
+.upload-section {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+.upload-wrapper {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+.upload-wrapper > div[data-testid="stFileUploader"] {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+.upload-wrapper section[data-testid="stFileUploaderDropzone"] {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* ---------------- Camera Card ---------------- */
 .camera-card{
   position:relative;
-  border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px;
-  min-height:64px; padding:16px; color:#6b7280;
+  border:1.5px solid #E6E9EF;
+  background:#F6F8FB;
+  border-radius:12px;
+  min-height:64px;
+  padding:16px;
+  color:#6b7280;
 }
-/* keep room for the button */
 .camera-hint{ padding-right:160px; }
 
 /* Button inside camera card */
@@ -59,45 +96,13 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
   padding:.4rem .8rem;
   cursor:pointer;
 }
-.custom-cam-btn:hover {
-  border-color:#9CA3AF;
-}
+.custom-cam-btn:hover { border-color:#9CA3AF; }
 
-/* responsive adjustments */
+/* ---------------- Responsive ---------------- */
 @media (max-width:680px){
   .camera-hint{ padding-right:0; }
-  .custom-cam-btn { position: static !important; margin-top:.5rem !important; }
+  .custom-cam-btn { position:static !important; margin-top:.5rem !important; }
 }
-
-/* Match spacing in Upload and Camera cards */
-.upload-section > div[data-testid="stFileUploader"] {
-  margin-top: 0 !important;
-}
-
-/* Reduce vertical spacing above uploader */
-.upload-section {
-  margin-bottom: 0 !important;
-}
-
-/* Tighten uploader card spacing */
-.upload-section section[data-testid="stFileUploaderDropzone"] {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-}
-
-.upload-wrapper {
-  margin-top: 0 !important;
-}
-
-.upload-wrapper > div[data-testid="stFileUploader"] {
-  margin-top: 0 !important;
-}
-
-.upload-wrapper section[data-testid="stFileUploaderDropzone"] {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -279,13 +284,7 @@ with left:
 
     st.file_uploader(label="", type=["jpg", "jpeg", "png"], key="uploader", on_change=on_upload_change)
 
-    st.markdown("""
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-
-
+    st.markdown("</div></div>", unsafe_allow_html=True)
 
 with right:
     st.markdown('<div class="section"><div class="title">Record Photo</div>'
