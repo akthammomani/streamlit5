@@ -95,6 +95,13 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   .camera-hint{ padding-right:0; }
   .custom-cam-btn { position:static !important; margin-top:.5rem !important; }
 }
+
+.upload-section .title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 .15rem 0;
+  color: #2c313f;
+}
 </style>
 """, unsafe_allow_html=True)
 
