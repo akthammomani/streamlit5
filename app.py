@@ -30,32 +30,36 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-/* Remove Streamlit's default extra top padding in each column */
+/* ===========================
+   GLOBAL COLUMN CLEANUP
+   =========================== */
+
+/* Streamlit gives each st.columns cell its own inner div with padding.
+   Kill that so both columns start at the same vertical origin. */
 div[data-testid="column"] > div:first-child {
   margin-top: 0 !important;
   padding-top: 0 !important;
 }
 
-/* Column wrappers */
+/* We'll wrap each column in .leaf-left / .leaf-right in the Python code */
 .leaf-left { /* left column wrapper */ }
+.leaf-right { /* right column wrapper */ }
 
-.leaf-right {
-  margin-top: 0; /* don't shift the whole right column down anymore */
-}
-
-/* Each column's inner block layout:
-   - Row 1: header text (title + sub)
-   - Row 2: the gray card (uploader or camera)
-*/
+/* Inner container for each column’s content.
+   We aren't forcing a grid anymore (Streamlit wraps each st.markdown),
+   so just use normal block flow. */
 .leaf-block {
-  display: grid;
-  grid-template-rows: auto auto;
-  row-gap: 8px;
+  display: block;
   margin: 0;
   padding: 0;
 }
 
-/* Header row (title + subtitle) */
+
+/* ===========================
+   HEADER (TITLE + SUBTITLE)
+   =========================== */
+
+/* Wrapper around "Upload Photo" / "Record Photo" + subtitle text */
 .block-head {
   display: flex;
   flex-direction: column;
@@ -65,46 +69,70 @@ div[data-testid="column"] > div:first-child {
   line-height: 1.4;
 }
 
-/* Header title */
+/* Big line ("Upload Photo", "Record Photo") */
 .block-head .title {
   font-size: 1rem;
   font-weight: 600;
-  color: #1f2937;      /* slate-800 */
+  color: #1f2937;      /* slate-800-ish */
   margin: 0;
   line-height: 1.4;
 }
 
-/* Header subtitle */
+/* Small line ("Drop a JPG/PNG here...", "Use your device camera") */
 .block-head .sub {
   font-size: 0.875rem;
   font-weight: 400;
-  color: #6b7280;      /* gray-500/600 */
+  color: #6b7280;      /* gray-500/600 range */
   margin: 0;
   line-height: 1.4;
 }
 
-/* Card row wrapper (2nd row in each column) */
+/* A consistent little gap below the header block before its card.
+   This affects BOTH columns equally. */
+.block-head {
+  margin-bottom: 8px;
+}
+
+
+/* ===========================
+   CARD WRAPPER ROW
+   =========================== */
+
+/* .block-card is the div we output right before the uploader or camera card.
+   Streamlit wraps THIS in a .stMarkdown div, so margin on .block-card alone
+   doesn't move the stack. Still zero it out for cleanliness. */
 .block-card {
   margin: 0 !important;
   padding: 0 !important;
 }
 
-/* 🔥 Alignment fix:
-   Only on the RIGHT column, push the card (not the header) down.
-   Tweak 45px slightly if you're off by 1-2px on your screen.
+/* CRUCIAL ALIGNMENT FIX:
+   Streamlit wraps each st.markdown() in a .stMarkdown div.
+   So in the right column, we select the .stMarkdown that CONTAINS
+   the block-card (which ultimately contains the camera card),
+   and push THAT wrapper down.
+
+   This moves just the camera card down to match the upload card,
+   but does NOT move the "Record Photo" heading itself.
 */
-.leaf-right .block-card {
-  margin-top: 45px !important;
+.leaf-right div.stMarkdown:has(.block-card) {
+  margin-top: 45px !important;  /* tweak this number (e.g. 40-55px) if needed */
 }
 
-/* Streamlit's file uploader injects its own top margin.
-   Kill it so the upload card hugs the header properly.
-*/
+/* On the left side, Streamlit gives the uploader widget an annoying
+   default margin-top. Remove it so that the upload card sits snug
+   under its header. */
 .leaf-left div[data-testid="stFileUploader"] {
   margin-top: 0 !important;
 }
 
-/* Clean up uploader block spacing */
+
+/* ===========================
+   UPLOADER CARD (LEFT COLUMN)
+   =========================== */
+
+/* Streamlit nests the file uploader markup in a few layers.
+   We normalize spacing on all of them to eliminate unexpected gaps. */
 .upload-wrapper,
 .upload-wrapper > div[data-testid="stFileUploader"],
 .upload-wrapper section[data-testid="stFileUploaderDropzone"] {
@@ -112,7 +140,8 @@ div[data-testid="column"] > div:first-child {
   padding: 0 !important;
 }
 
-/* Uploader gray card appearance */
+/* This is the visible drag/drop zone.
+   Style it like a soft card (matches camera card visuals). */
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
@@ -120,65 +149,87 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   padding: 12px;
 }
 
-/* Camera gray card: match uploader look */
+
+/* ===========================
+   CAMERA CARD (RIGHT COLUMN)
+   =========================== */
+
 .camera-card {
   position: relative;
   display: flex;
   align-items: flex-start;
+
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
   border-radius: 12px;
+
   padding: 16px 12px;
   min-height: 64px;
   color: #6b7280;
   box-sizing: border-box;
-  margin: 0 !important;
+
+  margin: 0 !important; /* prevent Streamlit from injecting surprise spacing */
 }
 
 /* Text inside the camera card */
 .camera-hint {
   font-size: 0.875rem;
   line-height: 1.4;
-  padding-right: 150px;   /* leave space for the button on desktop */
-  margin: 0;
   color: #6b7280;
+  margin: 0;
+
+  /* On desktop we float the "Open camera" button to the top-right.
+     Give the text body some breathing room so it doesn't overlap. */
+  padding-right: 150px;
 }
 
-/* "Open camera" button */
+/* "Open camera" button styling */
 .custom-cam-btn {
   position: absolute;
   right: 16px;
   top: 8px;
+
   background: #ffffff;
   color: #111827;
   font-size: 0.875rem;
   line-height: 1.2;
+
   border: 1px solid #D1D5DB;
   border-radius: 8px;
   padding: .45rem .8rem;
+
   cursor: pointer;
   white-space: nowrap;
 }
+
 .custom-cam-btn:hover {
   border-color: #9CA3AF;
 }
 
-/* Mobile tweaks */
+
+/* ===========================
+   RESPONSIVE BEHAVIOR
+   =========================== */
+
 @media (max-width: 680px) {
+
+  /* Stack vertical inside the camera card on small screens */
   .camera-card {
     flex-direction: column;
   }
+
   .camera-hint {
     padding-right: 0;
   }
+
   .custom-cam-btn {
     position: static !important;
     margin-top: .5rem !important;
   }
 
-  /* On narrow screens, that 45px offset is too much spacing.
-     You can safely drop it so the two cards just stack. */
-  .leaf-right .block-card {
+  /* On narrow screens, we don't want a giant vertical gap between
+     the right header and the right card. So reduce that margin. */
+  .leaf-right div.stMarkdown:has(.block-card) {
     margin-top: 16px !important;
   }
 }
