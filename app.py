@@ -229,7 +229,7 @@ with right:
     st.markdown('<div class="section"><div class="title">Record Photo</div>'
                 '<div class="sub">Use your device camera</div>', unsafe_allow_html=True)
     if not st.session_state.show_camera:
-        st.write("")
+        #st.write("")
         st.button("Open camera", on_click=open_camera)
         cap = None
     else:
