@@ -9,7 +9,7 @@ import streamlit as st
 import torch
 import torchvision.transforms as T
 import streamlit.components.v1 as components
-
+from streamlit_javascript import st_javascript
 
 # -------------------- Paths --------------------
 ART = Path("Data_Directory/artifacts")
@@ -28,7 +28,7 @@ st.set_page_config(
     layout="wide",
 )
 
-# Card-like look for uploader and camera (matched to screenshot #2)
+# Card‑like look for uploader and camera
 st.markdown("""
 <style>
 .section { margin-bottom:.05rem; }
@@ -50,24 +50,26 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
 /* keep room for the button */
 .camera-hint{ padding-right:160px; }
 
-/* button look */
-.camera-slot button{
-  background:#ffffff !important; color:#111827 !important;
-  border:1px solid #D1D5DB !important; border-radius:8px !important;
-  padding:.4rem .8rem !important; margin:0 !important;
+/* Button inside camera card */
+.custom-cam-btn {
+  background:#ffffff;
+  color:#111827;
+  border:1px solid #D1D5DB;
+  border-radius:8px;
+  padding:.4rem .8rem;
+  cursor:pointer;
 }
-.camera-slot button:hover{ border-color:#9CA3AF !important; }
+.custom-cam-btn:hover {
+  border-color:#9CA3AF;
+}
 
-/* responsive */
+/* responsive adjustments */
 @media (max-width:680px){
   .camera-hint{ padding-right:0; }
-  .camera-slot{ position:static !important; text-align:left !important; margin-top:.5rem; }
+  .custom-cam-btn { position: static !important; margin-top:.5rem !important; }
 }
 </style>
 """, unsafe_allow_html=True)
-
-
-
 
 if Path(BANNER).exists():
     st.image(BANNER, use_container_width=True)
@@ -173,7 +175,7 @@ def render_prob_bars_native(prob_map: dict):
         c1, c2, c3 = st.columns([1.6, 6, 1.2])
         with c1: st.write(_pretty(lab))
         with c2:
-            try: st.progress(p)             # Streamlit >=1.31
+            try: st.progress(p)
             except Exception: st.progress(int(p*100))
         with c3: st.write(f"{p*100:.1f}%")
 
@@ -187,10 +189,10 @@ CARE_POSTERS = {
 
 # -------------------- Session state --------------------
 if "show_camera" not in st.session_state:   st.session_state.show_camera = False
-if "source" not in st.session_state:        st.session_state.source = None  # 'camera'|'upload'
+if "source" not in st.session_state:        st.session_state.source = None
 if "captured" not in st.session_state:      st.session_state.captured = None
 if "upload" not in st.session_state:        st.session_state.upload = None
-if "keep_camera_on" not in st.session_state:st.session_state.keep_camera_on = False
+if "keep_camera_on" not in st.session_state: st.session_state.keep_camera_on = False
 
 def open_camera():
     st.session_state.show_camera = True
@@ -220,7 +222,7 @@ def sidebar_logo(title:str, path:str):
     )
 
 with st.sidebar:
-    sidebar_logo("AI-Powered Apple Leaf Specialist", APP_LOGO)
+    sidebar_logo("AI‑Powered Apple Leaf Specialist", APP_LOGO)
     st.subheader("Settings")
     THRESHOLD = st.slider("Decision threshold (τ)", 0.0, 0.99, 0.85, 0.01)
     dark_thr   = st.slider("Too dark threshold", 0.05, 0.50, 0.25, 0.01)
@@ -248,53 +250,31 @@ with right:
                 '<div class="sub">Use your device camera</div>', unsafe_allow_html=True)
 
     if not st.session_state.show_camera:
-    # Gray card with a reserved slot
-        st.markdown(
-            '<div class="camera-card">'
-            '  <div class="camera-hint">Tap “Open camera” to take a photo.</div>'
-            '  <div class="camera-slot" style="position:absolute;right:18px;top:8px;text-align:right;"></div>'
-            '</div>', unsafe_allow_html=True
-        )
-    
-        # Normal Streamlit button (must exist so we can move it)
-        st.button("Open camera", on_click=open_camera, key="open_cam_btn")
-    
-        # 🔧 JS: move the button wrapper into the .camera-slot above
-        components.html("""
-        <script>
-        (function () {
-          const move = () => {
-            const doc = window.parent.document;
-            // Find the newest slot on the page
-            const slots = Array.from(doc.querySelectorAll('.camera-slot'));
-            const slot = slots.at(-1);
-            if (!slot) return;
-    
-            // Find the nearest following element-container with a Streamlit button
-            let el = slot.closest('[data-testid="element-container"]');
-            while (el && (el = el.nextElementSibling)) {
-              if (!el.matches('[data-testid="element-container"]')) continue;
-              const btnWrap = el.querySelector('.stButton, [data-testid="stButton"]');
-              const btn     = el.querySelector('button');
-              if (btnWrap && btn && /Open camera/i.test(btn.textContent)) {
-                // Move the WHOLE element-container so Streamlit keeps state/layout
-                slot.appendChild(el);
-                // Clean spacing
-                el.style.margin = '0';
-                btnWrap.style.margin = '0';
-                slot.style.display = 'block';
-                return;
-              }
-            }
-          };
-    
-          // run now and also on reruns (DOM mutations)
-          move();
-          const obs = new MutationObserver(() => move());
-          obs.observe(window.parent.document.body, {childList: true, subtree: true});
+        st.markdown("""
+            <div class="camera-card">
+              <div class="camera-hint">Tap “Open camera” to take a photo.</div>
+              <button id="open_cam_real" class="custom-cam-btn" style="position:absolute; right:18px; top:8px;">
+                Open camera
+              </button>
+            </div>
+        """, unsafe_allow_html=True)
+
+        js_result = st_javascript("""
+        (function(){
+          const btn = window.parent.document.getElementById("open_cam_real");
+          if(btn){
+            btn.onclick = function(){
+              window.parent.postMessage({type:"streamlit:setComponentValue", value:true}, "*");
+            };
+          }
         })();
-        </script>
-        """, height=0)
+        """, key="open_cam_js")
+
+        if js_result:
+            st.session_state.show_camera = True
+            st.session_state.source = "camera"
+            st.session_state.upload = None
+
         cap = None
     else:
         cap = st.camera_input("", key="camera_input")
@@ -305,14 +285,12 @@ with right:
                 close_camera()
         st.button("Close camera", on_click=close_camera, key="close_cam_btn")
 
-
-
     st.markdown("</div>", unsafe_allow_html=True)
-
 
 # Active source
 file = st.session_state.captured if st.session_state.source == "camera" else (
-       st.session_state.upload if st.session_state.source == "upload" else None)
+    st.session_state.upload if st.session_state.source == "upload" else None
+)
 
 # -------------------- Main inference path --------------------
 if file:
@@ -324,7 +302,7 @@ if file:
         st.warning(f"Image appears too dark (brightness {b:.2f}). Retake under brighter, even lighting.")
         st.stop()
     if b > bright_thr:
-        st.warning(f"Image appears too bright/washed-out (brightness {b:.2f}). Retake avoiding direct glare.")
+        st.warning(f"Image appears too bright/washed‑out (brightness {b:.2f}). Retake avoiding direct glare.")
         st.stop()
     if st.session_state.source == "camera":
         bypass_gate = st.checkbox("Bypass leaf check for this camera image", value=False)
@@ -341,17 +319,17 @@ if file:
     pred_label, pred_conf, _ = decide(probs, labels, THRESHOLD)
     prob_map = {lab: float(probs[i]) for i, lab in enumerate(labels)}
 
-    # -------- Row 1: image (left) + prediction (right) --------
+    # -------- Row 1: image + prediction --------
     r1_left, r1_right = st.columns([1,1], gap="large")
     with r1_left:
         st.markdown("### Your Image:")
-        st.image(ImageOps.contain(pil, (520, 520)), use_container_width=False)
+        st.image(ImageOps.contain(pil, (PREVIEW_MAX_W, PREVIEW_MAX_H)), use_container_width=False)
 
     with r1_right:
         st.markdown("### Predicted Apple Disease Label is:")
         st.markdown(f"**{_pretty(pred_label)}** with **{pred_conf*100:.0f}%** Confidence")
         render_prob_bars_native(prob_map)
-        st.caption("Model: Calibrated ResNet-18 (TorchScript). Low-confidence predictions route to ‘unknown’.")
+        st.caption("Model: Calibrated ResNet‑18 (TorchScript). Low‑confidence predictions route to ‘unknown’.")
     vspace(3)
 
     # -------- Row 2: Title --------
