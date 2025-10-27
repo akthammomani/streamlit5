@@ -45,7 +45,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
 /* Gray card identical to uploader */
 .camera-card {
   border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px;
-  min-height:64px; padding:12px; color:#6b7280;
+  min-height:64px; padding:16px; color:#6b7280;
 }
 
 /* Reserve space so text doesn’t go under the button */
