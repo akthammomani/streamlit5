@@ -36,10 +36,14 @@ div[data-testid="column"] > div:first-child {
   padding-top: 0 !important;
 }
 
-/* Each column uses a grid with 2 rows:
-   row 1 = header text (title+subtitle)
-   row 2 = card / uploader.
-   Visually they look stacked the same. */
+/* Left/right column wrappers */
+.leaf-left { /* left column wrapper */ }
+.leaf-right {
+  /* right column wrapper */
+  margin-top: 16px;  /* <-- NEW: push the whole camera column down */
+}
+
+/* Each column block content */
 .leaf-block {
   display: grid;
   grid-template-rows: auto auto;
@@ -48,7 +52,7 @@ div[data-testid="column"] > div:first-child {
   padding: 0;
 }
 
-/* Header row (title + subtitle) */
+/* Header row */
 .block-head {
   display: flex;
   flex-direction: column;
@@ -58,7 +62,7 @@ div[data-testid="column"] > div:first-child {
   line-height: 1.4;
 }
 
-/* Title + subtitle text */
+/* Title + subtitle */
 .block-head .title {
   font-size: 1rem;
   font-weight: 600;
@@ -80,16 +84,12 @@ div[data-testid="column"] > div:first-child {
   padding: 0 !important;
 }
 
-/* --- KEY FIX ---
-   Streamlit injects margin-top on the uploader widget itself.
-   We kill it ONLY on the left column so the gray box moves UP
-   and aligns with the camera card top edge.
-*/
+/* Kill Streamlit's default top margin on the uploader so the gray box hugs the header */
 .leaf-left div[data-testid="stFileUploader"] {
   margin-top: 0 !important;
 }
 
-/* Uploader internal cleanup */
+/* Uploader cleanup */
 .upload-wrapper,
 .upload-wrapper > div[data-testid="stFileUploader"],
 .upload-wrapper section[data-testid="stFileUploaderDropzone"] {
@@ -124,7 +124,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
 .camera-hint {
   font-size: 0.875rem;
   line-height: 1.4;
-  padding-right: 150px;   /* space for button on desktop */
+  padding-right: 150px;
   margin: 0;
   color: #6b7280;
 }
@@ -163,6 +163,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
 }
 </style>
 """, unsafe_allow_html=True)
+
 
 # -------------------- Banner --------------------
 if Path(BANNER).exists():
