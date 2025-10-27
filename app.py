@@ -45,7 +45,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
   border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px;
   min-height:64px; padding:12px; display:flex; align-items:center; color:#6b7280;
 }
-.camera-hint{ padding-right:116px; }          /* leave room for button */
+.camera-hint{ padding-right:200px; }          /* leave room for button */
 .camera-row .stButton > button{
   position:absolute; right:12px; top:12px; margin:0;  /* put button inside the gray card */
 }
