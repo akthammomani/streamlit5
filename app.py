@@ -8,7 +8,6 @@ from PIL import Image, ImageOps
 import streamlit as st
 import torch
 import torchvision.transforms as T
-import streamlit.components.v1 as components
 from streamlit_javascript import st_javascript
 
 # -------------------- Paths --------------------
@@ -38,19 +37,12 @@ div[data-testid="column"] > div:first-child {
   padding-top: 0 !important;
 }
 
-/* 2. Shared block wrapper for both LEFT (upload) and RIGHT (camera) */
+/* 2. Shared wrapper for LEFT (upload) and RIGHT (camera) */
 .form-block {
   display: flex;
   flex-direction: column;
-  gap: .4rem;        /* tight vertical rhythm between title, sub, card */
   margin: 0;
   padding: 0;
-}
-
-/* Camera column tends to float a bit higher; push it down a hair
-   so "Record Photo" lines up with "Upload Photo" */
-.camera-section {
-  margin-top: .4rem;   /* ~6px nudge down */
 }
 
 /* 3. Consistent title + subtitle text */
@@ -70,7 +62,10 @@ div[data-testid="column"] > div:first-child {
   margin: 0;
 }
 
-/* 4. Strip any extra margin Streamlit injects above/below uploader */
+/* 4. For the UPLOAD block:
+      - kill weird Streamlit margins
+      - then *add* one controlled 12px gap before the gray box
+*/
 .upload-wrapper,
 .upload-wrapper > div[data-testid="stFileUploader"],
 .upload-wrapper section[data-testid="stFileUploaderDropzone"] {
@@ -78,6 +73,10 @@ div[data-testid="column"] > div:first-child {
   padding-top: 0 !important;
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
+}
+
+.upload-wrapper {
+  margin-top: 12px !important;  /* <- matches camera-card margin-top so gray boxes align */
 }
 
 /* 5. Make the uploader dropzone look like a neat card */
@@ -88,7 +87,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   padding: 12px;
 }
 
-/* 6. Camera card gets the SAME visual language as uploader */
+/* 6. Camera card gets SAME visual language + SAME top gap (12px) */
 .camera-card {
   position: relative;
   display: flex;
@@ -100,18 +99,20 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   min-height: 64px;
   color: #6b7280;
   box-sizing: border-box;
+
+  margin-top: 12px; /* <- THIS is the key alignment fix */
 }
 
 /* Text inside camera card */
 .camera-hint {
   font-size: 0.875rem;
   line-height: 1.4;
-  padding-right: 150px; /* reserve space so button can sit on top-right */
+  padding-right: 150px; /* reserve space so button sits top-right */
   margin: 0;
   color: #6b7280;
 }
 
-/* 7. "Open camera" button style (mirrors Streamlit's neutral button look) */
+/* 7. "Open camera" button */
 .custom-cam-btn {
   position: absolute;
   right: 16px;
