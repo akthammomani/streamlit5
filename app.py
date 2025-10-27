@@ -73,6 +73,17 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
 .upload-section > div[data-testid="stFileUploader"] {
   margin-top: 0 !important;
 }
+
+/* Reduce vertical spacing above uploader */
+.upload-section {
+  margin-bottom: 0 !important;
+}
+
+/* Tighten uploader card spacing */
+.upload-section section[data-testid="stFileUploaderDropzone"] {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -253,6 +264,7 @@ with left:
     )
     st.file_uploader(label="", type=["jpg", "jpeg", "png"], key="uploader", on_change=on_upload_change)
     st.markdown("</div>", unsafe_allow_html=True)
+
 
 
 with right:
