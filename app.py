@@ -39,32 +39,24 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
   border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px; padding:12px;
 }
 
-/* Camera row: positioning context for the button */
 .camera-row { position: relative; margin-top:.25rem; }
-
-/* Gray card identical to uploader */
 .camera-card {
   border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px;
   min-height:64px; padding:16px; color:#6b7280;
 }
-
-/* Reserve space so text doesn’t tuck under the button */
 .camera-hint { padding-right:160px; }
 
-/* Put the next Streamlit button INSIDE the row, top-right over the gray card */
-.camera-row .stButton > button {
-  position: absolute; right:18px; top:8px; margin:0;
-}
-
-/* Nice button style */
-.camera-row .stButton > button {
+/* Works across newer Streamlit builds: target the button INSIDE the form */
+.camera-row form .stButton > button {
+  position:absolute; right:18px; top:8px; margin:0;
   background:#ffffff; color:#111827; border:1px solid #D1D5DB; border-radius:8px; padding:.4rem .8rem;
+  z-index:2;
 }
-.camera-row .stButton > button:hover { border-color:#9CA3AF; }
+.camera-row form .stButton > button:hover { border-color:#9CA3AF; }
 
-/* Narrow screens: let the button drop under gracefully */
+/* Narrow screens */
 @media (max-width: 680px){
-  .camera-row .stButton > button { position: static; margin-top:.5rem; }
+  .camera-row form .stButton > button { position: static; margin-top:.5rem; }
   .camera-hint { padding-right:0; }
 }
 </style>
@@ -249,12 +241,17 @@ with right:
                 '<div class="sub">Use your device camera</div>', unsafe_allow_html=True)
 
     if not st.session_state.show_camera:
-        # Wrapper that positions the button over the gray card
         st.markdown('<div class="camera-row">', unsafe_allow_html=True)
         st.markdown('<div class="camera-card"><div class="camera-hint">'
                     'Tap “Open camera” to take a photo.</div></div>', unsafe_allow_html=True)
-        st.button("Open camera", on_click=lambda: open_camera(), key="open_cam_btn")  # positioned by CSS
+    
+        # Put the button in a FORM so we can style it reliably
+        with st.form("open_cam_form", clear_on_submit=True):
+            opened = st.form_submit_button("Open camera")
         st.markdown('</div>', unsafe_allow_html=True)
+    
+        if opened:
+            open_camera()
         cap = None
     else:
         cap = st.camera_input("", key="camera_input")
