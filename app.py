@@ -8,6 +8,8 @@ from PIL import Image, ImageOps
 import streamlit as st
 import torch
 import torchvision.transforms as T
+import streamlit.components.v1 as components
+
 
 # -------------------- Paths --------------------
 ART = Path("Data_Directory/artifacts")
@@ -29,56 +31,41 @@ st.set_page_config(
 # Card-like look for uploader and camera (matched to screenshot #2)
 st.markdown("""
 <style>
-/* ---------- Section headings ---------- */
 .section { margin-bottom:.05rem; }
 .section .title { font-size:1.4rem; font-weight:700; margin:0 0 .15rem 0; color:#2c313f; }
 .section .sub   { color:#6b7280; margin:0 0 .25rem 0; }
 
-/* ---------- Uploader card ---------- */
+/* Uploader card */
 div[data-testid="stFileUploader"]{ margin-top:.25rem; }
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
   border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px; padding:12px;
 }
 
-/* ---------- Camera card ---------- */
+/* Camera card */
 .camera-card{
+  position:relative;
   border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px;
-  min-height:64px; padding:16px; color:#6b7280; position:relative;
+  min-height:64px; padding:16px; color:#6b7280;
 }
+/* keep room for the button */
 .camera-hint{ padding-right:160px; }
 
-/* Anchor is invisible—only used for CSS selection */
-.cam-anchor{ display:block; width:0; height:0; }
+/* button look */
+.camera-slot button{
+  background:#ffffff !important; color:#111827 !important;
+  border:1px solid #D1D5DB !important; border-radius:8px !important;
+  padding:.4rem .8rem !important; margin:0 !important;
+}
+.camera-slot button:hover{ border-color:#9CA3AF !important; }
 
-/* ====== Pull the NEXT Streamlit block (the button container) up into the card ======
-   Structure: [container with .camera-card ... .cam-anchor] + [container with .stButton]
-*/
-div[data-testid="element-container"]:has(.cam-anchor) + div[data-testid="element-container"]{
-  /* pull the whole button container up so it overlaps the card's top-right */
-  margin-top:-46px !important;
-}
-
-/* Right-align the button and style it */
-div[data-testid="element-container"]:has(.cam-anchor) + div[data-testid="element-container"] .stButton{
-  display:block; text-align:right; padding-right:18px;
-}
-div[data-testid="element-container"]:has(.cam-anchor) + div[data-testid="element-container"] .stButton > button{
-  background:#ffffff; color:#111827;
-  border:1px solid #D1D5DB; border-radius:8px; padding:.4rem .8rem; margin:0;
-}
-div[data-testid="element-container"]:has(.cam-anchor) + div[data-testid="element-container"] .stButton > button:hover{
-  border-color:#9CA3AF;
-}
-
-/* Responsive: on narrow screens, let the button drop below cleanly */
+/* responsive */
 @media (max-width:680px){
-  div[data-testid="element-container"]:has(.cam-anchor) + div[data-testid="element-container"]{
-    margin-top:.5rem !important;
-  }
   .camera-hint{ padding-right:0; }
+  .camera-slot{ position:static !important; text-align:left !important; margin-top:.5rem; }
 }
 </style>
 """, unsafe_allow_html=True)
+
 
 
 
@@ -261,16 +248,53 @@ with right:
                 '<div class="sub">Use your device camera</div>', unsafe_allow_html=True)
 
     if not st.session_state.show_camera:
-        # Card with an invisible anchor element at the end
+    # Gray card with a reserved slot
         st.markdown(
             '<div class="camera-card">'
             '  <div class="camera-hint">Tap “Open camera” to take a photo.</div>'
-            '  <span class="cam-anchor"></span>'
-            '</div>',
-            unsafe_allow_html=True
+            '  <div class="camera-slot" style="position:absolute;right:18px;top:8px;text-align:right;"></div>'
+            '</div>', unsafe_allow_html=True
         )
-        # This button is placed in the NEXT Streamlit block; CSS will pull it up into the card
+    
+        # Normal Streamlit button (must exist so we can move it)
         st.button("Open camera", on_click=open_camera, key="open_cam_btn")
+    
+        # 🔧 JS: move the button wrapper into the .camera-slot above
+        components.html("""
+        <script>
+        (function () {
+          const move = () => {
+            const doc = window.parent.document;
+            // Find the newest slot on the page
+            const slots = Array.from(doc.querySelectorAll('.camera-slot'));
+            const slot = slots.at(-1);
+            if (!slot) return;
+    
+            // Find the nearest following element-container with a Streamlit button
+            let el = slot.closest('[data-testid="element-container"]');
+            while (el && (el = el.nextElementSibling)) {
+              if (!el.matches('[data-testid="element-container"]')) continue;
+              const btnWrap = el.querySelector('.stButton, [data-testid="stButton"]');
+              const btn     = el.querySelector('button');
+              if (btnWrap && btn && /Open camera/i.test(btn.textContent)) {
+                // Move the WHOLE element-container so Streamlit keeps state/layout
+                slot.appendChild(el);
+                // Clean spacing
+                el.style.margin = '0';
+                btnWrap.style.margin = '0';
+                slot.style.display = 'block';
+                return;
+              }
+            }
+          };
+    
+          // run now and also on reruns (DOM mutations)
+          move();
+          const obs = new MutationObserver(() => move());
+          obs.observe(window.parent.document.body, {childList: true, subtree: true});
+        })();
+        </script>
+        """, height=0)
         cap = None
     else:
         cap = st.camera_input("", key="camera_input")
@@ -280,6 +304,7 @@ with right:
             if not st.session_state.keep_camera_on:
                 close_camera()
         st.button("Close camera", on_click=close_camera, key="close_cam_btn")
+
 
 
     st.markdown("</div>", unsafe_allow_html=True)
