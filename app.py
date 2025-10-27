@@ -425,7 +425,7 @@ with st.sidebar:
     PREVIEW_MAX_H = st.slider("Image preview max height (px)", 200, 900, 420, 10)
     #st.checkbox("Keep camera open after capture", value=st.session_state.keep_camera_on, key="keep_camera_on")
     #st.caption(f"Engine: TorchScript · Temperature: {TEMPERATURE:.2f} · Image size: {IMG_SIZE}")
-    st.write("---")
+    #st.write("---")
     st.write("""
     ### Contacts
     [![](https://img.shields.io/badge/GitHub-Follow-informational)](https://github.com/akthammomani)
