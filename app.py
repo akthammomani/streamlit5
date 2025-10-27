@@ -109,7 +109,7 @@ div[data-testid="column"] > div:first-child {
    of the camera card lines up with the top of the upload card.
    Adjust height until visually perfect. */
 .right-spacer {
-  height: 45px;   /* try 45, bump to 50 if camera card still too high */
+  height: 45px;   /* tweak this (40-55px) to align gray boxes horizontally */
   width: 100%;
 }
 
@@ -155,17 +155,18 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
    CAMERA CARD (RIGHT COLUMN)
    =========================== */
 
+/* The gray card on the right side */
 .camera-card {
   position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: flex-start;   /* or center if you want vertical centering */
 
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
   border-radius: 12px;
 
   padding: 16px 12px;
-  min-height: 67px;
+  min-height: 78px;          /* was 67px; bump to better match uploader height */
   color: #6b7280;
   box-sizing: border-box;
 
@@ -183,26 +184,45 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   padding-right: 150px;
 }
 
-/* "Open camera" button */
-.custom-cam-btn {
+
+/* ===========================
+   STREAMLIT "OPEN CAMERA" BUTTON
+   =========================== */
+
+/* We render the Streamlit button in a sibling div called .open-cam-btn-row
+   AFTER the card in the DOM, then pull it UP and OVERLAY it into the card. */
+.open-cam-btn-row {
+  position: relative;
+  height: 0;      /* so the wrapper itself doesn't add vertical gap below the card */
+  margin: 0;
+  padding: 0;
+}
+
+/* .stButton is the container Streamlit wraps around the actual <button>.
+   We absolutely position that container so it sits in the top-right corner
+   of the gray camera card, visually mirroring the uploader "Browse files". */
+.open-cam-btn-row .stButton {
   position: absolute;
   right: 16px;
-  top: 8px;
+  top: -56px;     /* pull upward until it sits nicely inside .camera-card */
+  margin: 0;
+}
 
+/* Style the actual Streamlit <button> to match your desired pill/button look */
+.open-cam-btn-row .stButton > button {
   background: #ffffff;
   color: #111827;
   font-size: 0.875rem;
   line-height: 1.2;
-
   border: 1px solid #D1D5DB;
   border-radius: 8px;
   padding: .45rem .8rem;
-
   cursor: pointer;
   white-space: nowrap;
+  box-shadow: none;
 }
 
-.custom-cam-btn:hover {
+.open-cam-btn-row .stButton > button:hover {
   border-color: #9CA3AF;
 }
 
@@ -222,9 +242,19 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
     padding-right: 0;
   }
 
-  .custom-cam-btn {
-    position: static !important;
-    margin-top: .5rem !important;
+  /* On mobile, stop overlaying the button.
+     Let it flow *after* the card in normal doc order. */
+  .open-cam-btn-row {
+    height: auto;
+  }
+
+  .open-cam-btn-row .stButton {
+    position: static;
+    margin-top: .5rem;
+  }
+
+  .open-cam-btn-row .stButton > button {
+    width: auto;
   }
 
   /* On narrow screens, we don't want a huge offset,
@@ -234,9 +264,9 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   }
 }
 
-
 </style>
 """, unsafe_allow_html=True)
+
 
 
 # -------------------- Banner --------------------
@@ -438,10 +468,10 @@ with left:
     st.markdown('</div></div>', unsafe_allow_html=True)  # close leaf-block + leaf-left
 
 with right:
-    # wrapper divs for CSS hooks
+    # wrappers for CSS styling
     st.markdown('<div class="leaf-right"><div class="leaf-block">', unsafe_allow_html=True)
 
-    # header text
+    # Header (stays aligned with "Upload Photo")
     st.markdown(
         '<div class="block-head">'
         '<div class="title">Record Photo</div>'
@@ -450,49 +480,63 @@ with right:
         unsafe_allow_html=True
     )
 
-    # spacer to vertically align the gray cards across columns
+    # spacer that vertically lines up the gray cards across columns
     st.markdown('<div class="right-spacer"></div>', unsafe_allow_html=True)
 
-    if not st.session_state.show_camera:
-        # --- CAMERA CLOSED STATE -----------------
-        # gray instruction card (no JS button inside it anymore)
-        st.markdown(
-            """
-            <div class="block-card">
-              <div class="camera-card">
-                <p class="camera-hint">Tap “Open camera” to take a photo.</p>
-              </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    # We'll render inside here based on camera open/closed state
+    camera_area = st.container()
 
-        # real Streamlit button (works 100%)
-        if st.button("Open camera", key="open_cam_btn"):
-            open_camera()  # flip session state so next rerun shows camera
+    # ---------- CAMERA OPEN STATE ----------
+    if st.session_state.get("show_camera", False):
+        with camera_area:
+            st.markdown('<div class="block-card">', unsafe_allow_html=True)
 
-        cap = None
+            cap = st.camera_input("", key="camera_input")
 
+            if cap is not None:
+                st.session_state.captured = cap
+                st.session_state.source = "camera"
+                # auto-close camera after capture unless user wants it to stay open
+                if not st.session_state.get("keep_camera_on", False):
+                    st.session_state.show_camera = False
+                    st.rerun()
+
+            # manual close control
+            if st.button("Close camera", key="close_cam_btn"):
+                st.session_state.show_camera = False
+                st.rerun()
+
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    # ---------- CAMERA CLOSED STATE ----------
     else:
-        # --- CAMERA OPEN STATE -------------------
-        st.markdown('<div class="block-card">', unsafe_allow_html=True)
+        with camera_area:
+            # gray card with instructions
+            st.markdown(
+                """
+                <div class="block-card">
+                  <div class="camera-card">
+                    <p class="camera-hint">Tap “Open camera” to take a photo.</p>
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
-        cap = st.camera_input("", key="camera_input")
+            # wrapper for the Streamlit button that we'll reposition with CSS
+            st.markdown('<div class="open-cam-btn-row">', unsafe_allow_html=True)
 
-        if cap is not None:
-            st.session_state.captured = cap
-            st.session_state.source = "camera"
-            # auto-close camera after capture unless user asked to keep it on
-            if not st.session_state.get("keep_camera_on", False):
-                close_camera()
+            if st.button("Open camera", key="open_cam_btn"):
+                st.session_state.show_camera = True
+                st.session_state.source = "camera"
+                st.session_state.upload = None
+                st.rerun()
 
-        # manual close control
-        st.button("Close camera", on_click=close_camera, key="close_cam_btn")
+            st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    # close the wrappers
+    # close the two wrappers we opened up top
     st.markdown('</div></div>', unsafe_allow_html=True)
+
 
 
 
