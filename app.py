@@ -438,10 +438,10 @@ with left:
     st.markdown('</div></div>', unsafe_allow_html=True)  # close leaf-block + leaf-left
 
 with right:
-    # outer wrappers for styling hooks (.leaf-right .leaf-block)
+    # wrapper divs for CSS hooks
     st.markdown('<div class="leaf-right"><div class="leaf-block">', unsafe_allow_html=True)
 
-    # heading block ("Record Photo", "Use your device camera")
+    # header text
     st.markdown(
         '<div class="block-head">'
         '<div class="title">Record Photo</div>'
@@ -450,57 +450,26 @@ with right:
         unsafe_allow_html=True
     )
 
-    # this spacer is what vertically lines up the two gray cards
+    # spacer to vertically align the gray cards across columns
     st.markdown('<div class="right-spacer"></div>', unsafe_allow_html=True)
 
     if not st.session_state.show_camera:
         # --- CAMERA CLOSED STATE -----------------
-        # gray card with hint text and an HTML "Open camera" button
+        # gray instruction card (no JS button inside it anymore)
         st.markdown(
             """
             <div class="block-card">
               <div class="camera-card">
                 <p class="camera-hint">Tap “Open camera” to take a photo.</p>
-                <button id="open_cam_real" class="custom-cam-btn" type="button">
-                  Open camera
-                </button>
               </div>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-        # JavaScript bridge:
-        # 1. Find our <button id="open_cam_real">
-        # 2. When it's clicked, post a message that sets this component's value to true.
-        #    streamlit_javascript will pick that up and return True to Python.
-        js_result = st_javascript(
-            """
-            (function () {
-              const btn = window.parent.document.getElementById("open_cam_real");
-              if (!btn) {
-                return false;
-              }
-              // attach click handler only once
-              if (!btn._streamlitBound) {
-                btn._streamlitBound = true;
-                btn.addEventListener("click", function () {
-                  window.parent.postMessage(
-                    { type: "streamlit:setComponentValue", value: true },
-                    "*"
-                  );
-                });
-              }
-              // we haven't clicked yet, so just return false for now
-              return false;
-            })();
-            """,
-            key="open_cam_js"
-        )
-
-        # If the JS click fired, the component reruns and js_result will now be True.
-        if js_result:
-            open_camera()  # flips session_state.show_camera = True etc.
+        # real Streamlit button (works 100%)
+        if st.button("Open camera", key="open_cam_btn"):
+            open_camera()  # flip session state so next rerun shows camera
 
         cap = None
 
@@ -508,23 +477,23 @@ with right:
         # --- CAMERA OPEN STATE -------------------
         st.markdown('<div class="block-card">', unsafe_allow_html=True)
 
-        # this renders the actual device camera input
         cap = st.camera_input("", key="camera_input")
 
         if cap is not None:
             st.session_state.captured = cap
             st.session_state.source = "camera"
-            # auto-close camera after capture unless user asked to keep it open
+            # auto-close camera after capture unless user asked to keep it on
             if not st.session_state.get("keep_camera_on", False):
                 close_camera()
 
-        # manual close button
+        # manual close control
         st.button("Close camera", on_click=close_camera, key="close_cam_btn")
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # close .leaf-block and .leaf-right wrappers
+    # close the wrappers
     st.markdown('</div></div>', unsafe_allow_html=True)
+
 
 
 # Pick active file
