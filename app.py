@@ -269,13 +269,15 @@ left, right = st.columns([1,1], gap="large")
 
 with left:
     #st.markdown("#### Upload Photo")
+with left:
     st.markdown('<div class="upload-section">', unsafe_allow_html=True)
-    st.markdown("#### Upload Photo")  # Uses markdown header, like "Record Photo"
+    st.markdown('<div class="title">Upload Photo</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub">Drop a JPG/PNG here, or browse</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="upload-wrapper">', unsafe_allow_html=True)
     st.file_uploader(label="", type=["jpg", "jpeg", "png"], key="uploader", on_change=on_upload_change)
     st.markdown("</div></div>", unsafe_allow_html=True)
+
 
 with right:
     st.markdown('<div class="section"><div class="title">Record Photo</div>'
