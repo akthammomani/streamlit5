@@ -219,6 +219,7 @@ st.subheader("Add a leaf photo")
 left, right = st.columns([1,1], gap="large")
 
 with left:
+    st.write("")
     st.markdown('<div class="section"><div class="title">Upload Photo</div>'
                 '<div class="sub">Drop a JPG/PNG here, or browse</div>', unsafe_allow_html=True)
     st.file_uploader(label="", type=["jpg","jpeg","png"], key="uploader", on_change=on_upload_change)
