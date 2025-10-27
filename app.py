@@ -535,7 +535,7 @@ if file:
     prob_map = {lab: float(probs[i]) for i, lab in enumerate(labels)}
 
     # -------- Row 1: image + prediction --------
-    r1_left, r1_right = st.columns([1,1])#, gap="large")
+    r1_left, r1_right = st.columns([1,2])#, gap="large")
     with r1_left:
         st.markdown("### Your Image:")
         st.image(ImageOps.contain(pil, (PREVIEW_MAX_W, PREVIEW_MAX_H)), use_container_width=False)
