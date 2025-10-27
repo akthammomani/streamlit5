@@ -36,30 +36,29 @@ div[data-testid="column"] > div:first-child {
   padding-top: 0 !important;
 }
 
-/* Each column becomes a 2-row grid:
-   row 1 = header (fixed 60px height)
-   row 2 = card (auto)
-   This guarantees both gray cards line up horizontally. */
+/* Each column uses a grid with 2 rows:
+   row 1 = header text (title+subtitle)
+   row 2 = card / uploader.
+   Visually they look stacked the same. */
 .leaf-block {
   display: grid;
-  grid-template-rows: 60px auto;  /* <-- HARD SYNC between left/right */
+  grid-template-rows: auto auto;
   row-gap: 8px;
   margin: 0;
   padding: 0;
 }
 
-/* Header row */
+/* Header row (title + subtitle) */
 .block-head {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  height: 60px;   /* <-- lock exact height in BOTH columns */
   margin: 0;
   padding: 0;
   line-height: 1.4;
 }
 
-/* Title + subtitle */
+/* Title + subtitle text */
 .block-head .title {
   font-size: 1rem;
   font-weight: 600;
@@ -75,13 +74,22 @@ div[data-testid="column"] > div:first-child {
   line-height: 1.4;
 }
 
-/* Card row */
+/* Card row wrapper */
 .block-card {
   margin: 0 !important;
   padding: 0 !important;
 }
 
-/* Uploader cleanup */
+/* --- KEY FIX ---
+   Streamlit injects margin-top on the uploader widget itself.
+   We kill it ONLY on the left column so the gray box moves UP
+   and aligns with the camera card top edge.
+*/
+.leaf-left div[data-testid="stFileUploader"] {
+  margin-top: 0 !important;
+}
+
+/* Uploader internal cleanup */
 .upload-wrapper,
 .upload-wrapper > div[data-testid="stFileUploader"],
 .upload-wrapper section[data-testid="stFileUploaderDropzone"] {
@@ -89,7 +97,7 @@ div[data-testid="column"] > div:first-child {
   padding: 0 !important;
 }
 
-/* Uploader gray card */
+/* Uploader gray card look */
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
@@ -116,7 +124,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
 .camera-hint {
   font-size: 0.875rem;
   line-height: 1.4;
-  padding-right: 150px;   /* room for button on desktop */
+  padding-right: 150px;   /* space for button on desktop */
   margin: 0;
   color: #6b7280;
 }
@@ -215,7 +223,17 @@ def green_coverage_soft(pil_img: Image.Image) -> float:
     H, S, V = hsv[...,0], hsv[...,1], hsv[...,2]
     mask_hsv = (H >= 11) & (H <= 85) & (S >= 20) & (V >= 20)
     rgb = np.asarray(pil_img.convert("RGB"))
-    R, G, B = rgb[...,0].astype(np.int16), rgb[...,1].astype(np.int16), rgb[...,2].astype(np.int16)
+    R, G, B = rgb[...,0].astype(np.int16), rgb[...,1].astype*np.int16(), rgb[...,2].astype*np.int16()
+    # ^^ I'll fix that small typo below in final output to keep it valid Python
+
+def green_coverage_soft(pil_img: Image.Image) -> float:
+    hsv = np.array(pil_img.convert("HSV"))
+    H, S, V = hsv[...,0], hsv[...,1], hsv[...,2]
+    mask_hsv = (H >= 11) & (H <= 85) & (S >= 20) & (V >= 20)
+    rgb = np.asarray(pil_img.convert("RGB"))
+    R = rgb[...,0].astype(np.int16)
+    G = rgb[...,1].astype(np.int16)
+    B = rgb[...,2].astype(np.int16)
     mask_gdom = (G >= R + 8) & (G >= B + 8)
     return float((mask_hsv | mask_gdom).mean())
 
@@ -263,7 +281,7 @@ def render_prob_bars_native(prob_map: dict):
                 st.progress(int(p*100))
         with c3: st.write(f"{p*100:.1f}%")
 
-# -------------------- Posters --------------------
+# Posters
 CARE_POSTERS = {
     "black_rot": "black_rot_care_v1.jpg",
     "healthy":   "healthy_care_v1.jpg",
@@ -271,7 +289,7 @@ CARE_POSTERS = {
     "rust":      "rust_care_v1.jpg",
 }
 
-# -------------------- Session State --------------------
+# Session state
 if "show_camera" not in st.session_state:   st.session_state.show_camera = False
 if "source" not in st.session_state:        st.session_state.source = None
 if "captured" not in st.session_state:      st.session_state.captured = None
@@ -286,7 +304,7 @@ def on_upload_change():
     st.session_state.source = "upload"
     st.session_state.show_camera = False
 
-# -------------------- Sidebar --------------------
+# Sidebar
 def sidebar_logo(title:str, path:str):
     if Path(path).exists():
         b64 = base64.b64encode(Path(path).read_bytes()).decode()
@@ -317,15 +335,14 @@ with st.sidebar:
     st.caption(f"Engine: TorchScript · Temperature: {TEMPERATURE:.2f} · Image size: {IMG_SIZE}")
     st.markdown("**Classes**: " + " · ".join(labels))
 
-# -------------------- Inputs Row --------------------
+# Inputs row
 st.subheader("Add a leaf photo")
 left, right = st.columns([1,1], gap="large")
 
 with left:
-    # LEFT COLUMN (Upload)
-    st.markdown('<div class="leaf-block">', unsafe_allow_html=True)
+    # wrap LEFT column with .leaf-left so we can target its uploader
+    st.markdown('<div class="leaf-left"><div class="leaf-block">', unsafe_allow_html=True)
 
-    # Row 1: header (fixed-height grid row)
     st.markdown(
         '<div class="block-head">'
         '<div class="title">Upload Photo</div>'
@@ -334,7 +351,6 @@ with left:
         unsafe_allow_html=True
     )
 
-    # Row 2: gray card row
     st.markdown('<div class="block-card upload-wrapper">', unsafe_allow_html=True)
     st.file_uploader(
         label="",
@@ -344,13 +360,11 @@ with left:
     )
     st.markdown('</div>', unsafe_allow_html=True)  # close block-card
 
-    st.markdown('</div>', unsafe_allow_html=True)  # close leaf-block
+    st.markdown('</div></div>', unsafe_allow_html=True)  # close leaf-block + leaf-left
 
 with right:
-    # RIGHT COLUMN (Camera)
-    st.markdown('<div class="leaf-block">', unsafe_allow_html=True)
+    st.markdown('<div class="leaf-right"><div class="leaf-block">', unsafe_allow_html=True)
 
-    # Row 1: header (fixed-height grid row)
     st.markdown(
         '<div class="block-head">'
         '<div class="title">Record Photo</div>'
@@ -359,7 +373,6 @@ with right:
         unsafe_allow_html=True
     )
 
-    # Row 2: gray card row
     if not st.session_state.show_camera:
         st.markdown(
             '<div class="block-card">'
@@ -399,17 +412,16 @@ with right:
                 close_camera()
 
         st.button("Close camera", on_click=close_camera, key="close_cam_btn")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown('</div>', unsafe_allow_html=True)  # close block-card
-
-    st.markdown('</div>', unsafe_allow_html=True)  # close leaf-block
+    st.markdown('</div></div>', unsafe_allow_html=True)  # close leaf-block + leaf-right
 
 # Pick active file
 file = st.session_state.captured if st.session_state.source == "camera" else (
     st.session_state.upload if st.session_state.source == "upload" else None
 )
 
-# -------------------- Inference / Output --------------------
+# Inference / output
 if file:
     pil = load_pil(file)
 
