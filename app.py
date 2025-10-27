@@ -269,7 +269,6 @@ left, right = st.columns([1,1], gap="large")
 
 with left:
     #st.markdown("#### Upload Photo")
-with left:
     st.markdown('<div class="upload-section">', unsafe_allow_html=True)
     st.markdown('<div class="title">Upload Photo</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub">Drop a JPG/PNG here, or browse</div>', unsafe_allow_html=True)
