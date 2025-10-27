@@ -40,7 +40,7 @@ div[data-testid="column"] > div:first-child {
 .leaf-left { /* left column wrapper */ }
 .leaf-right {
   /* right column wrapper */
-  margin-top: 16px;  /* <-- NEW: push the whole camera column down */
+  margin-top: 32px;  /* <-- NEW: push the whole camera column down */
 }
 
 /* Each column block content */
