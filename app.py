@@ -423,8 +423,8 @@ with st.sidebar:
     tex_min = st.slider("Min texture score (camera gate)", 0.0, 300.0, 25.0, 1.0)
     PREVIEW_MAX_W = st.slider("Image preview max width (px)", 280, 1000, 420, 10)
     PREVIEW_MAX_H = st.slider("Image preview max height (px)", 200, 900, 420, 10)
-    st.checkbox("Keep camera open after capture", value=st.session_state.keep_camera_on, key="keep_camera_on")
-    st.caption(f"Engine: TorchScript · Temperature: {TEMPERATURE:.2f} · Image size: {IMG_SIZE}")
+    #st.checkbox("Keep camera open after capture", value=st.session_state.keep_camera_on, key="keep_camera_on")
+    #st.caption(f"Engine: TorchScript · Temperature: {TEMPERATURE:.2f} · Image size: {IMG_SIZE}")
     st.write("---")
     st.write("""
     ### Contacts
