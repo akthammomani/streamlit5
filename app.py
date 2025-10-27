@@ -47,23 +47,24 @@ st.markdown("""
   margin-bottom: .25rem;
 }
 
-/* Remove vertical spacing */
+/* Kill default Streamlit vertical spacing in columns */
+div[data-testid="column"] > div {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Section structure clean-up */
 .upload-section,
 .upload-wrapper,
 .upload-wrapper > div[data-testid="stFileUploader"],
 .upload-wrapper section[data-testid="stFileUploaderDropzone"] {
   margin-top: 0 !important;
-  margin-bottom: 0 !important;
   padding-top: 0 !important;
+  margin-bottom: 0 !important;
   padding-bottom: 0 !important;
 }
 
-/* NEW: Remove spacing from column container */
-div[data-testid="column"] > div {
-  margin-top: -16px !important;
-}
-
-/* Uploader box card */
+/* Uploader styling */
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
@@ -71,7 +72,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   padding: 12px;
 }
 
-/* Camera card (untouched) */
+/* Camera card */
 .camera-card {
   position: relative;
   border: 1.5px solid #E6E9EF;
@@ -81,7 +82,9 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   padding: 16px;
   color: #6b7280;
 }
-.camera-hint { padding-right: 160px; }
+.camera-hint {
+  padding-right: 160px;
+}
 
 /* Camera button */
 .custom-cam-btn {
@@ -96,7 +99,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   border-color: #9CA3AF;
 }
 
-/* Responsive camera padding */
+/* Responsive behavior */
 @media (max-width: 680px) {
   .camera-hint { padding-right: 0; }
   .custom-cam-btn {
@@ -106,6 +109,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
 }
 </style>
 """, unsafe_allow_html=True)
+
 
 
 
