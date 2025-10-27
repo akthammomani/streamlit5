@@ -26,19 +26,27 @@ st.set_page_config(
     layout="wide",
 )
 
+# Card-like look for uploader and camera (TIGHT SPACING)
 st.markdown("""
 <style>
-.section { margin-bottom: 1.25rem; }
-.section .title { font-size: 1.4rem; font-weight: 700; margin: 0 0 .25rem 0; color: #2c313f; }
-.section .sub   { color: #6b7280; margin: 0 0 .75rem 0; }
+.section { margin-bottom: .75rem; }                           /* overall row spacing smaller */
+.section .title { font-size: 1.4rem; font-weight:700; margin:0 0 .15rem 0; color:#2c313f; }
+.section .sub   { color:#6b7280; margin:0 0 .25rem 0; }       /* <<< tighten subtitle gap */
+
+/* File uploader */
+div[data-testid="stFileUploader"]{ margin-top:.25rem; }       /* <<< same top gap as camera button */
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
-  border: 1.5px solid #E6E9EF; background: #F6F8FB; border-radius: 12px; padding: 16px;
+  border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px; padding:12px; /* was 16px */
 }
+
+/* Camera input + button */
 div[data-testid="stCameraInput"]{
-  border: 1.5px solid #E6E9EF; background: #F6F8FB; border-radius: 12px; padding: 12px;
+  border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px; padding:10px; margin-top:.25rem;
 }
+div.stButton > button { margin-top:4px; }                     /* <<< align button to uploader gap */
 </style>
 """, unsafe_allow_html=True)
+
 
 if Path(BANNER).exists():
     st.image(BANNER, use_container_width=True)
