@@ -372,18 +372,46 @@ def on_upload_change():
     st.session_state.show_camera = False
 
 # -------------------- Sidebar --------------------
-def sidebar_logo(title:str, path:str):
+def sidebar_logo(title: str, path: str):
     if Path(path).exists():
         b64 = base64.b64encode(Path(path).read_bytes()).decode()
         ext = Path(path).suffix.lstrip(".").lower() or "png"
-        img_html = f'<img src="data:image/{ext};base64,{b64}" alt="logo" />'
+
+        # 👇 control the displayed size here
+        # pick the width you want (e.g. 120px, 100px, 80px...)
+        img_html = (
+            f'<img src="data:image/{ext};base64,{b64}" '
+            f'style="max-width:80px; height:auto; display:block;" '
+            f'alt="logo" />'
+        )
     else:
+        # fallback emoji size can be smaller too if you like
         img_html = '<div style="font-size:48px">🍎</div>'
+
     st.markdown(
-        f'<div style="display:flex;flex-direction:column;align-items:center;gap:.4rem;margin-bottom:1rem;text-align:center">'
-        f'{img_html}<div style="font-weight:700;font-size:1.0rem;line-height:1.2;color:#2c313f">{title}</div></div>',
+        f'''
+        <div style="
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            gap:.6rem;
+            margin-bottom:1rem;
+            text-align:center;
+        ">
+            {img_html}
+            <div style="
+                font-weight:700;
+                font-size:1.0rem;
+                line-height:1.2;
+                color:#2c313f;
+            ">
+                {title}
+            </div>
+        </div>
+        ''',
         unsafe_allow_html=True
     )
+
 
 with st.sidebar:
     sidebar_logo("AI‑Powered Apple Leaf Specialist", APP_LOGO)
