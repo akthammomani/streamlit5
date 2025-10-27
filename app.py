@@ -40,7 +40,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
 }
 
 /* Camera row wrapper + card */
-.camera-row{ position:relative; margin-top:.25rem; }
+.camera-row{ position:relative; margin-top:.05rem; }
 .camera-card{
   border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px; padding:14px 12px;
   min-height:64px; display:flex; align-items:center; color:#6b7280;
