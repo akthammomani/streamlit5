@@ -26,7 +26,7 @@ st.set_page_config(
     layout="wide",
 )
 
-# Card-like look for uploader and camera (TIGHT SPACING)
+# Card-like look for uploader and camera (matched to screenshot #2)
 st.markdown("""
 <style>
 .section { margin-bottom:.05rem; }
@@ -39,7 +39,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
   border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px; padding:12px;
 }
 
-/* Camera row: make it a positioning context for the button */
+/* Camera row: positioning context for the button */
 .camera-row { position: relative; margin-top:.25rem; }
 
 /* Gray card identical to uploader */
@@ -48,17 +48,27 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
   min-height:64px; padding:16px; color:#6b7280;
 }
 
-/* Reserve space so text doesn’t go under the button */
+/* Reserve space so text doesn’t tuck under the button */
 .camera-hint { padding-right:160px; }
 
-/* Place the next Streamlit button INSIDE the row, top-right over the gray card */
+/* Put the next Streamlit button INSIDE the row, top-right over the gray card */
 .camera-row .stButton > button {
   position: absolute; right:18px; top:8px; margin:0;
 }
+
+/* Nice button style */
+.camera-row .stButton > button {
+  background:#ffffff; color:#111827; border:1px solid #D1D5DB; border-radius:8px; padding:.4rem .8rem;
+}
+.camera-row .stButton > button:hover { border-color:#9CA3AF; }
+
+/* Narrow screens: let the button drop under gracefully */
+@media (max-width: 680px){
+  .camera-row .stButton > button { position: static; margin-top:.5rem; }
+  .camera-hint { padding-right:0; }
+}
 </style>
 """, unsafe_allow_html=True)
-
-
 
 if Path(BANNER).exists():
     st.image(BANNER, use_container_width=True)
@@ -243,18 +253,20 @@ with right:
         st.markdown('<div class="camera-row">', unsafe_allow_html=True)
         st.markdown('<div class="camera-card"><div class="camera-hint">'
                     'Tap “Open camera” to take a photo.</div></div>', unsafe_allow_html=True)
-        st.button("Open camera", on_click=open_camera, key="open_cam_btn")  # positioned by CSS
+        st.button("Open camera", on_click=lambda: open_camera(), key="open_cam_btn")  # positioned by CSS
         st.markdown('</div>', unsafe_allow_html=True)
         cap = None
     else:
         cap = st.camera_input("", key="camera_input")
-        if st.button("Close camera", key="close_cam_btn"): close_camera()
+        # 🔧 Write the captured file to session state so inference proceeds
+        if cap is not None:
+            st.session_state.captured = cap
+            st.session_state.source = "camera"
+            if not st.session_state.keep_camera_on:
+                close_camera()
+        st.button("Close camera", on_click=lambda: close_camera(), key="close_cam_btn")
 
     st.markdown("</div>", unsafe_allow_html=True)
-
-
-
-
 
 # Active source
 file = st.session_state.captured if st.session_state.source == "camera" else (
@@ -291,14 +303,14 @@ if file:
     r1_left, r1_right = st.columns([1,1], gap="large")
     with r1_left:
         st.markdown("### Your Image:")
-        st.image(pil, width=360)   
+        st.image(ImageOps.contain(pil, (520, 520)), use_container_width=False)
 
     with r1_right:
         st.markdown("### Predicted Apple Disease Label is:")
         st.markdown(f"**{_pretty(pred_label)}** with **{pred_conf*100:.0f}%** Confidence")
         render_prob_bars_native(prob_map)
         st.caption("Model: Calibrated ResNet-18 (TorchScript). Low-confidence predictions route to ‘unknown’.")
-    vspace(3)  # white space between rows
+    vspace(3)
 
     # -------- Row 2: Title --------
     st.markdown(f"### Apple – {_pretty(pred_label)} Care Recommendations:")
@@ -308,7 +320,8 @@ if file:
     poster_path = CARE_POSTERS.get(pred_label, CARE_POSTERS["healthy"])
     if not Path(poster_path).exists():
         st.info("Care poster not found. Please add the JPGs next to app.py.")
-    st.image(poster_path, use_container_width=True)
+    else:
+        st.image(poster_path, use_container_width=True)
 
 else:
     st.info("Upload a photo or open the camera to begin.")
