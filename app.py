@@ -29,38 +29,70 @@ st.set_page_config(
 # Card-like look for uploader and camera (matched to screenshot #2)
 st.markdown("""
 <style>
+/* ---------- Section headings ---------- */
 .section { margin-bottom:.05rem; }
 .section .title { font-size:1.4rem; font-weight:700; margin:0 0 .15rem 0; color:#2c313f; }
 .section .sub   { color:#6b7280; margin:0 0 .25rem 0; }
 
-/* Uploader (kept) */
+/* ---------- Uploader card (left) ---------- */
 div[data-testid="stFileUploader"]{ margin-top:.25rem; }
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
   border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px; padding:12px;
 }
 
+/* ---------- Camera card (right) ---------- */
 .camera-row { position: relative; margin-top:.25rem; }
+
 .camera-card {
   border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px;
   min-height:64px; padding:16px; color:#6b7280;
 }
+
+/* keep room so text doesn't slide under the button */
 .camera-hint { padding-right:160px; }
 
-/* Works across newer Streamlit builds: target the button INSIDE the form */
+/* Hide any visual chrome from Streamlit's form wrapper */
+.camera-row .stForm,
+.camera-row [data-testid="stForm"],
+.camera-row form {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+/* also remove inner spacing some builds add */
+.camera-row .stForm > div,
+.camera-row [data-testid="stForm"] > div,
+.camera-row form > div {
+  margin: 0 !important; padding: 0 !important;
+}
+
+/* Place the button on the card, top-right */
+.camera-row .stForm .stButton > button,
+.camera-row [data-testid="stForm"] .stButton > button,
 .camera-row form .stButton > button {
   position:absolute; right:18px; top:8px; margin:0;
-  background:#ffffff; color:#111827; border:1px solid #D1D5DB; border-radius:8px; padding:.4rem .8rem;
+  background:#ffffff; color:#111827;
+  border:1px solid #D1D5DB; border-radius:8px; padding:.4rem .8rem;
   z-index:2;
 }
+.camera-row .stForm .stButton > button:hover,
+.camera-row [data-testid="stForm"] .stButton > button:hover,
 .camera-row form .stButton > button:hover { border-color:#9CA3AF; }
 
-/* Narrow screens */
+/* ---------- Responsive: stack neatly on narrow screens ---------- */
 @media (max-width: 680px){
-  .camera-row form .stButton > button { position: static; margin-top:.5rem; }
+  .camera-row .stForm .stButton > button,
+  .camera-row [data-testid="stForm"] .stButton > button,
+  .camera-row form .stButton > button {
+    position: static; margin-top:.5rem;
+  }
   .camera-hint { padding-right:0; }
 }
 </style>
 """, unsafe_allow_html=True)
+
 
 if Path(BANNER).exists():
     st.image(BANNER, use_container_width=True)
