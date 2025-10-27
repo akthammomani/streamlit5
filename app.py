@@ -1,6 +1,7 @@
 # app.py
 import json
 from pathlib import Path
+import base64
 
 import numpy as np
 import pandas as pd
@@ -8,60 +9,13 @@ from PIL import Image, ImageOps
 import streamlit as st
 import torch
 import torchvision.transforms as T
-import base64
-
-# ---------- UI styles for cards and bars ----------
-st.markdown("""
-<style>
-.card { background:#F3F4F6; border:1.5px solid #D1D5DB; border-radius:18px; padding:18px; }
-.card h3 { margin:0 0 .5rem 0; }
-.prob-title { font-weight:600; margin:.75rem 0 .5rem 0; color:#374151; }
-.bar-row { display:flex; align-items:center; margin:.35rem 0; gap:.5rem; font-size:.95rem; }
-.bar-label { width:88px; color:#374151; white-space:nowrap; }
-.bar-rail { flex:1; height:10px; border-radius:999px; background:#E5E7EB; overflow:hidden; }
-.bar-fill { height:100%; border-radius:999px; background:#2563EB; } /* default blue */
-.bar-pct { width:54px; text-align:right; color:#374151; }
-.poster { background:#F9FAFB; border:1.5px solid #E5E7EB; border-radius:18px; padding:12px; }
-.poster img { border-radius:14px; width:100%; height:auto; display:block; }
-.section-title { font-size:1.15rem; font-weight:800; margin-bottom:.5rem; }
-</style>
-""", unsafe_allow_html=True)
-
-CARE_POSTERS = {
-    "black_rot": "black_rot_care.jpg",
-    "healthy":   "healthy_care.jpg",
-    "scab":      "scab_care.jpg",
-    "rust":      "rust_care.jpg",
-}
-
-def _pretty(lab:str)->str:
-    return lab.replace("_"," ").title()
-
-def render_prob_bars(prob_map: dict):
-    # prob_map = {label: prob_float}
-    order = ["black_rot","healthy","scab","rust"]  # fixed order to match your mock
-    html = ['<div class="prob-title">Apple Disease Probability</div>']
-    for lab in order:
-        p = float(prob_map.get(lab, 0.0))
-        pct = f"{p*100:.1f}%"
-        width = int(round(p*100))
-        html.append(f"""
-          <div class="bar-row">
-            <div class="bar-label">{_pretty(lab)}</div>
-            <div class="bar-rail"><div class="bar-fill" style="width:{width}%;"></div></div>
-            <div class="bar-pct">{pct}</div>
-          </div>
-        """)
-    st.markdown("".join(html), unsafe_allow_html=True)
-
 
 # -------------------- Paths --------------------
 ART = Path("Data_Directory/artifacts")
 TS_PATH   = ART / "model.torchscript.pt"
 CFG_PATH  = ART / "config_inference.json"
 LAB_PATH  = ART / "labels.json"
-TEMP_PATH = ART / "temperature.json"  
-
+TEMP_PATH = ART / "temperature.json"
 
 BANNER   = "header_banner.jpg"
 APP_LOGO = "logo 2.jpg"
@@ -85,40 +39,15 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
 div[data-testid="stCameraInput"]{
   border: 1.5px solid #E6E9EF; background: #F6F8FB; border-radius: 12px; padding: 12px;
 }
-</style>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-<style>
-/* Sidebar header block */
-.sidebar-header {
-  display: flex; 
-  flex-direction: column; 
-  align-items: center; 
-  justify-content: center;
-  text-align: center;
-  gap: .4rem;
-  margin-bottom: 1rem;
-}
-.sidebar-header img {
-  width: 96px;              /* tweak size if you like */
-  height: auto;
-  border-radius: 12px;      /* optional rounded corners */
-  box-shadow: 0 2px 6px rgba(0,0,0,.08);
-}
-.sidebar-title {
-  font-weight: 700;
-  font-size: 1.0rem;
-  line-height: 1.2;
-  color: #2c313f;
-}
+/* Simple card + poster containers */
+.card   { background:#F3F4F6; border:1.5px solid #D1D5DB; border-radius:18px; padding:18px; }
+.poster { background:#F9FAFB; border:1.5px solid #E5E7EB; border-radius:18px; padding:12px; }
+.section-title { font-size:1.15rem; font-weight:800; margin-bottom:.5rem; }
 </style>
 """, unsafe_allow_html=True)
 
 if Path(BANNER).exists():
     st.image(BANNER, use_container_width=True)
-#st.title("AI-Powered Apple Leaf Specialist")
-#st.caption("Capture or upload one apple leaf photo. The model predicts healthy · scab · rust · black_rot, or routes to unknown at low confidence.")
 
 # -------------------- Utilities --------------------
 def _load_json(p: Path, default):
@@ -206,44 +135,32 @@ def decide(probs: np.ndarray, labels, threshold: float):
     k = int(np.argmax(probs)); p = float(probs[k])
     return (labels[k], p, k) if p >= threshold else ("unknown", p, k)
 
-# -------------------- Care tips --------------------
-CARE = {
-    "healthy":[
-        "No action required; keep routine scouting weekly.",
-        "Light pruning to maintain airflow; remove dense water sprouts.",
-        "Irrigate at soil level; avoid wetting foliage late in the day.",
-        "Sanitation: rake and remove healthy leaf drop away from trunks."
-    ],
-    "scab":[
-        "Cull infected leaves/fruit; bag and trash (do not compost).",
-        "Sanitize pruners between cuts (70% alcohol or 10% bleach).",
-        "Apply a registered fungicide early-season or at first signs per local guidance.",
-        "Prevention: prune for airflow; remove leaf litter over winter."
-    ],
-    "rust":[
-        "Check nearby juniper/cedar (alternate host); prune galls if feasible.",
-        "Use protectant fungicide at tight cluster/pink where rust pressure is high.",
-        "Improve airflow (thin dense branches); remove heavily infected leaves.",
-        "Avoid overhead irrigation; keep mulch off the trunk flare."
-    ],
-    "black_rot":[
-        "Prune cankers 4–6 inches below visible margins; dispose of prunings.",
-        "Remove mummified fruit and infected spurs; sanitize tools.",
-        "If orchard had prior black rot pressure, run an early-season fungicide program.",
-        "Keep orchard floor clean; remove dead wood where fungus overwinters."
-    ],
-    "unknown":[
-        "Low confidence: retake in bright, even light; fill the frame with one leaf.",
-        "Wipe lens; hold phone steady; avoid backlight and deep shadows.",
-        "Capture both sides and the most symptomatic area.",
-        "If symptoms persist, contact your local extension agent with multiple photos."
-    ],
+# -------------------- Care posters --------------------
+CARE_POSTERS = {
+    "black_rot": "black_rot_care.jpg",
+    "healthy":   "healthy_care.jpg",
+    "scab":      "scab_care.jpg",
+    "rust":      "rust_care.jpg",
 }
-def render_care(label):
-    st.subheader("Care & Prevention")
-    for t in CARE.get(label, CARE["unknown"]):
-        st.write("• " + t)
-    st.caption("General guidance only. Follow local regulations and product labels for any chemical applications.")
+
+def _pretty(lab: str) -> str:
+    return lab.replace("_", " ").title()
+
+def render_prob_bars_native(prob_map: dict):
+    st.markdown("**Apple Disease Probability**")
+    order = ["black_rot", "healthy", "scab", "rust"]  # fixed order for display
+    for lab in order:
+        p = float(prob_map.get(lab, 0.0))
+        c1, c2, c3 = st.columns([1.6, 6, 1.2])
+        with c1:
+            st.write(_pretty(lab))
+        with c2:
+            try:
+                st.progress(p)            # Streamlit >= 1.31 supports float 0-1
+            except Exception:
+                st.progress(int(p*100))   # fallback for older versions
+        with c3:
+            st.write(f"{p*100:.1f}%")
 
 # -------------------- Session state (single-source input) --------------------
 if "show_camera" not in st.session_state:   st.session_state.show_camera = False
@@ -274,9 +191,9 @@ def sidebar_logo(title:str, path:str):
     else:
         img_html = '<div style="font-size:48px">🍎</div>'
     st.markdown(f'''
-        <div class="sidebar-header">
+        <div class="sidebar-header" style="display:flex;flex-direction:column;align-items:center;gap:.4rem;margin-bottom:1rem;text-align:center">
             {img_html}
-            <div class="sidebar-title">{title}</div>
+            <div class="sidebar-title" style="font-weight:700;font-size:1.0rem;line-height:1.2;color:#2c313f">{title}</div>
         </div>
     ''', unsafe_allow_html=True)
 
@@ -326,7 +243,7 @@ file = st.session_state.captured if st.session_state.source == "camera" else (
 if file:
     pil = load_pil(file)
 
-    # Brightness checks (unchanged)
+    # Brightness checks
     b = compute_brightness(pil)
     if b < dark_thr:
         st.warning(f"Image appears too dark (brightness {b:.2f}). Retake under brighter, even lighting.")
@@ -335,7 +252,7 @@ if file:
         st.warning(f"Image appears too bright/washed-out (brightness {b:.2f}). Retake avoiding direct glare.")
         st.stop()
 
-    # Leaf-likeness gate ONLY for camera (unchanged)
+    # Leaf-likeness gate ONLY for camera
     if st.session_state.source == "camera":
         bypass_gate = st.checkbox("Bypass leaf check for this camera image", value=False)
         ok_leaf, cov, tex = is_leaf_like(pil, cov_min=cov_min, cov_max=0.98, tex_min=tex_min)
@@ -361,15 +278,14 @@ if file:
         st.markdown('<div class="section-title">Your Image:</div>', unsafe_allow_html=True)
         st.image(pil, use_container_width=True)
         st.markdown(
-            f"<h3>Predicted Apple Disease Label is:<br>"
-            f"{_pretty(pred_label)} with {pred_conf*100:.0f}% Confidence</h3>",
-            unsafe_allow_html=True
+            f"## Predicted Apple Disease Label is:\n"
+            f"**{_pretty(pred_label)}** with **{pred_conf*100:.0f}%** Confidence"
         )
-        render_prob_bars(prob_map)
+        render_prob_bars_native(prob_map)
         st.markdown('</div>', unsafe_allow_html=True)
 
     with right_col:
-        # Choose poster: if unknown, show the 'healthy' guidance as a neutral fallback
+        # Choose poster: if unknown, show 'healthy' as neutral fallback
         poster_path = CARE_POSTERS.get(pred_label, CARE_POSTERS["healthy"])
         if not Path(poster_path).exists():
             st.info("Care poster not found. Please add the JPGs next to app.py.")
