@@ -33,21 +33,31 @@ st.markdown("""
 .section .title { font-size:1.4rem; font-weight:700; margin:0 0 .15rem 0; color:#2c313f; }
 .section .sub   { color:#6b7280; margin:0 0 .25rem 0; }
 
-/* Uploader (unchanged) */
+/* Uploader (kept) */
 div[data-testid="stFileUploader"]{ margin-top:.25rem; }
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
   border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px; padding:12px;
 }
 
-/* Camera card that mirrors uploader */
-.camera-card{
-  width:100%; border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px;
-  padding:12px; min-height:64px; margin-top:.25rem;
+/* Camera row: make it a positioning context for the button */
+.camera-row { position: relative; margin-top:.25rem; }
+
+/* Gray card identical to uploader */
+.camera-card {
+  border:1.5px solid #E6E9EF; background:#F6F8FB; border-radius:12px;
+  min-height:64px; padding:12px; color:#6b7280;
 }
-.camera-hint{ color:#6b7280; padding:.25rem 0; }
-.camera-btn .stButton>button{ margin:0; }   /* remove default margin */
+
+/* Reserve space so text doesn’t go under the button */
+.camera-hint { padding-right:128px; }
+
+/* Place the next Streamlit button INSIDE the row, top-right over the gray card */
+.camera-row .stButton > button {
+  position: absolute; right:12px; top:12px; margin:0;
+}
 </style>
 """, unsafe_allow_html=True)
+
 
 
 if Path(BANNER).exists():
