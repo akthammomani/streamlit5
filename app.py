@@ -425,7 +425,16 @@ with st.sidebar:
     PREVIEW_MAX_H = st.slider("Image preview max height (px)", 200, 900, 420, 10)
     st.checkbox("Keep camera open after capture", value=st.session_state.keep_camera_on, key="keep_camera_on")
     st.caption(f"Engine: TorchScript · Temperature: {TEMPERATURE:.2f} · Image size: {IMG_SIZE}")
-    st.markdown("**Classes**: " + " · ".join(labels))
+    st.write("---")
+    st.write("""
+    ### Contacts
+    [![](https://img.shields.io/badge/GitHub-Follow-informational)](https://github.com/akthammomani)
+    [![](https://img.shields.io/badge/Linkedin-Connect-informational)](https://www.linkedin.com/in/akthammomani/)
+    [![](https://img.shields.io/badge/Open-Issue-informational)](https://github.com/akthammomani/ai_powered_apple_leaf_specialist/issues)
+    [![MAIL Badge](https://img.shields.io/badge/-aktham.momani81@gmail.com-c14438?style=flat-square&logo=Gmail&logoColor=white&link=mailto:aktham.momani81@gmail.com)](mailto:aktham.momani81@gmail.com)
+    ###### © Aktham Momani, 2025. All rights reserved.
+    """)
+    #st.markdown("**Classes**: " + " · ".join(labels))
 
 # -------------------- Inputs --------------------
 st.subheader("Add a leaf photo")
