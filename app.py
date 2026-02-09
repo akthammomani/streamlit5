@@ -33,19 +33,14 @@ st.markdown(
 /* ===========================
    GLOBAL COLUMN CLEANUP
    =========================== */
-
-/* Streamlit gives each st.columns cell its own inner div with padding.
-   Kill that so both columns start at the same vertical origin. */
 div[data-testid="column"] > div:first-child {
   margin-top: 0 !important;
   padding-top: 0 !important;
 }
 
-/* We'll wrap each column in .leaf-left / .leaf-right in the Python code */
-.leaf-left { /* left column wrapper */ }
-.leaf-right { /* right column wrapper */ }
+.leaf-left { }
+.leaf-right { }
 
-/* Inner container for each column’s content. */
 .leaf-block {
   display: block;
   margin: 0;
@@ -55,8 +50,6 @@ div[data-testid="column"] > div:first-child {
 /* ===========================
    HEADER (TITLE + SUBTITLE)
    =========================== */
-
-/* Wrapper around "Upload Photo" / "Record Photo" + subtitle text */
 .block-head {
   display: flex;
   flex-direction: column;
@@ -64,61 +57,45 @@ div[data-testid="column"] > div:first-child {
   margin: 0;
   padding: 0;
   line-height: 1.4;
+  margin-bottom: 8px;
 }
 
-/* Header title ("Upload Photo", "Record Photo") */
 .block-head .title {
   font-size: 1rem;
   font-weight: 600;
-  color: #1f2937;      /* slate-800-ish */
+  color: #1f2937;
   margin: 0;
   line-height: 1.4;
 }
 
-/* Header subtitle ("Drop a JPG/PNG...", "Use your device camera") */
 .block-head .sub {
   font-size: 0.875rem;
   font-weight: 400;
-  color: #6b7280;      /* gray-500/600 */
+  color: #6b7280;
   margin: 0;
   line-height: 1.4;
-}
-
-/* A consistent little gap below the header before its card (both columns) */
-.block-head {
-  margin-bottom: 8px;
 }
 
 /* ===========================
    ALIGNMENT SPACER (RIGHT ONLY)
    =========================== */
-
-/* This spacer will ONLY exist in the right column,
-   and it will push the camera card down so that the top
-   of the camera card lines up with the top of the upload card.
-   Adjust height until visually perfect. */
 .right-spacer {
-  height: 45px;   /* try 45, bump to 50 if camera card still too high */
+  height: 45px;
   width: 100%;
 }
 
 /* ===========================
    CARD ROW WRAPPER
    =========================== */
-
 .block-card {
   margin: 0 !important;
   padding: 0 !important;
 }
 
-/* On the left side, Streamlit gives the uploader widget
-   a default top margin. Kill it so the upload card hugs
-   its header closely. */
 .leaf-left div[data-testid="stFileUploader"] {
   margin-top: 0 !important;
 }
 
-/* Normalize spacing inside uploader layers */
 .upload-wrapper,
 .upload-wrapper > div[data-testid="stFileUploader"],
 .upload-wrapper section[data-testid="stFileUploaderDropzone"] {
@@ -129,7 +106,6 @@ div[data-testid="column"] > div:first-child {
 /* ===========================
    UPLOADER CARD (LEFT COLUMN)
    =========================== */
-
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
@@ -140,7 +116,6 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
 /* ===========================
    CAMERA CARD (RIGHT COLUMN)
    =========================== */
-
 .camera-card {
   position: relative;
   display: flex;
@@ -155,41 +130,50 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   color: #6b7280;
   box-sizing: border-box;
 
-  margin: 0 !important; /* prevent Streamlit surprises */
+  margin: 0 !important;
 }
 
-/* Text inside camera card */
 .camera-hint {
   font-size: 0.875rem;
   line-height: 1.4;
   color: #6b7280;
   margin: 0;
 
-  /* Make room for the "Open camera" button on desktop */
+  /* leave space for the button on desktop */
   padding-right: 150px;
 }
 
 /* ==========================================================
-   STREAMLIT BUTTON OVERLAY (keeps your exact old appearance)
+   FIX: MAKE THE REAL STREAMLIT BUTTON LOOK + SIT INSIDE THE CARD
+   We pull the st.button UP so it overlaps the camera card,
+   and right-align it (same as your old absolute HTML button).
+   This does NOT rely on :has()
    ========================================================== */
 
-/* Make the vertical block that contains the camera card a positioning context */
-div[data-testid="stVerticalBlock"]:has(.camera-card) {
-  position: relative !important;
+/* Target: the Streamlit button that immediately follows the markdown that contains .camera-card */
+div[data-testid="stMarkdown"] + div[data-testid="stButton"] {
+  /* DO NOT apply globally; we'll narrow it down below */
 }
 
-/* The Streamlit st.button wrapper inside that same block */
-div[data-testid="stVerticalBlock"]:has(.camera-card) div[data-testid="stButton"] {
-  position: absolute !important;
-  right: 16px !important;
-  top: 8px !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  width: auto !important;
+/* Narrow the scope: only inside the RIGHT column area */
+.leaf-right div[data-testid="stMarkdown"]:has(.camera-card) + div[data-testid="stButton"],
+.leaf-right div[data-testid="stMarkdown"] + div[data-testid="stButton"] {
+  /* The second selector is a fallback if :has() is not supported,
+     but only works correctly if your camera card markdown is the markdown right before the button. */
+
+  margin-top: -56px !important;           /* pulls button up into the card */
+  display: flex !important;
+  justify-content: flex-end !important;
+  padding-right: 16px !important;         /* aligns with your old right:16px */
 }
 
-/* Style the real Streamlit <button> to match your old HTML button */
-div[data-testid="stVerticalBlock"]:has(.camera-card) div[data-testid="stButton"] button {
+/* Remove Streamlit default spacing around button */
+.leaf-right div[data-testid="stButton"] {
+  margin-bottom: 0 !important;
+}
+
+/* Style the actual button */
+.leaf-right div[data-testid="stButton"] button {
   background: #ffffff !important;
   color: #111827 !important;
   font-size: 0.875rem !important;
@@ -204,17 +188,14 @@ div[data-testid="stVerticalBlock"]:has(.camera-card) div[data-testid="stButton"]
   box-shadow: none !important;
 }
 
-div[data-testid="stVerticalBlock"]:has(.camera-card) div[data-testid="stButton"] button:hover {
+.leaf-right div[data-testid="stButton"] button:hover {
   border-color: #9CA3AF !important;
 }
 
 /* ===========================
    RESPONSIVE BEHAVIOR
    =========================== */
-
 @media (max-width: 680px) {
-
-  /* Stack vertical inside the camera card on small screens */
   .camera-card {
     flex-direction: column;
   }
@@ -223,18 +204,20 @@ div[data-testid="stVerticalBlock"]:has(.camera-card) div[data-testid="stButton"]
     padding-right: 0;
   }
 
-  /* On mobile: let the Streamlit button flow below the hint */
-  div[data-testid="stVerticalBlock"]:has(.camera-card) div[data-testid="stButton"] {
-    position: static !important;
-    margin-top: .5rem !important;
+  /* On mobile we do NOT overlap; let it flow naturally under the hint */
+  .leaf-right div[data-testid="stMarkdown"]:has(.camera-card) + div[data-testid="stButton"],
+  .leaf-right div[data-testid="stMarkdown"] + div[data-testid="stButton"] {
+    margin-top: 10px !important;
+    padding-right: 0 !important;
+    justify-content: flex-start !important;
   }
 
-  /* On narrow screens, we don't want a huge offset */
   .right-spacer {
     height: 16px;
   }
 }
 </style>
+
 """,
     unsafe_allow_html=True,
 )
