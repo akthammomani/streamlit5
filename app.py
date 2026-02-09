@@ -70,7 +70,7 @@ div[data-testid="column"] > div:first-child {
 .block-head { margin-bottom: 8px; }
 
 /* ===========================
-   RIGHT SPACER
+   RIGHT SPACER (ALIGNMENT)
    =========================== */
 .right-spacer { height: 45px; width: 100%; }
 @media (max-width: 680px) { .right-spacer { height: 16px; } }
@@ -95,29 +95,41 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
 }
 
 /* ===========================
-   CAMERA CARD (RIGHT) — USE REAL STREAMLIT CONTAINER BORDER
+   CAMERA CARD (RIGHT) – st.container(border=True)
    =========================== */
-
-/* Style the bordered container on the right side (background + rounding) */
-.leaf-right div[data-testid="stContainer"]{
-  border-radius: 12px !important;
-  background: #F6F8FB !important;
-}
-
-/* Streamlit draws border on an inner div; ensure it matches */
-.leaf-right div[data-testid="stContainer"] > div{
-  border: 1.5px solid #E6E9EF !important;
-  border-radius: 12px !important;
-  background: #F6F8FB !important;
-  padding: 16px 12px !important;
-}
 
 /* Hint text */
 .cam-hint {
   font-size: 0.875rem;
   line-height: 1.4;
-  color: #6b7280;
-  margin: 0;
+  color: #6b7280 !important;
+  margin: 0 !important;
+}
+
+/* Border + radius on the outer container */
+.leaf-right div[data-testid="stContainer"]{
+  border-radius: 12px !important;
+}
+
+/* Streamlit draws the border on an inner wrapper sometimes.
+   Force border color consistency. */
+.leaf-right div[data-testid="stContainer"] > div{
+  border: 1.5px solid #E6E9EF !important;
+  border-radius: 12px !important;
+}
+
+/* ---- Force gray background INSIDE the bordered container ----
+   Different Streamlit versions nest wrappers differently,
+   so we cover both likely levels safely. */
+.leaf-right div[data-testid="stContainer"] > div:first-child {
+  background: #F6F8FB !important;
+  border-radius: 12px !important;
+  padding: 16px 12px !important;
+}
+
+.leaf-right div[data-testid="stContainer"] > div:first-child > div:first-child {
+  background: #F6F8FB !important;
+  border-radius: 12px !important;
 }
 
 /* Button alignment (top-right) */
@@ -149,20 +161,25 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   border-color: #9CA3AF !important;
 }
 
-/* Mobile: stack naturally */
+/* ===========================
+   RESPONSIVE (MOBILE)
+   =========================== */
 @media (max-width: 680px){
-  .leaf-right div[data-testid="stContainer"] > div{
+  .leaf-right div[data-testid="stContainer"] > div:first-child {
     padding: 14px 12px !important;
   }
+
   .leaf-right div[data-testid="stContainer"] div[data-testid="stButton"]{
     justify-content: flex-start !important;
     margin-top: .5rem !important;
   }
+
   .leaf-right div[data-testid="stContainer"] div[data-testid="stButton"] button{
     min-width: 0 !important;
   }
 }
 </style>
+
 """, unsafe_allow_html=True)
 
 
