@@ -33,14 +33,19 @@ st.markdown(
 /* ===========================
    GLOBAL COLUMN CLEANUP
    =========================== */
+
+/* Streamlit gives each st.columns cell its own inner div with padding.
+   Kill that so both columns start at the same vertical origin. */
 div[data-testid="column"] > div:first-child {
   margin-top: 0 !important;
   padding-top: 0 !important;
 }
 
+/* Wrappers */
 .leaf-left { }
 .leaf-right { }
 
+/* Inner container for each column’s content. */
 .leaf-block {
   display: block;
   margin: 0;
@@ -50,6 +55,7 @@ div[data-testid="column"] > div:first-child {
 /* ===========================
    HEADER (TITLE + SUBTITLE)
    =========================== */
+
 .block-head {
   display: flex;
   flex-direction: column;
@@ -60,7 +66,8 @@ div[data-testid="column"] > div:first-child {
   margin-bottom: 8px;
 }
 
-.block-head .title {
+/* Title ("Upload Photo", "Record Photo") */
+.title {
   font-size: 1rem;
   font-weight: 600;
   color: #1f2937;
@@ -68,7 +75,8 @@ div[data-testid="column"] > div:first-child {
   line-height: 1.4;
 }
 
-.block-head .sub {
+/* Subtitle */
+.sub {
   font-size: 0.875rem;
   font-weight: 400;
   color: #6b7280;
@@ -79,6 +87,7 @@ div[data-testid="column"] > div:first-child {
 /* ===========================
    ALIGNMENT SPACER (RIGHT ONLY)
    =========================== */
+
 .right-spacer {
   height: 45px;
   width: 100%;
@@ -87,15 +96,20 @@ div[data-testid="column"] > div:first-child {
 /* ===========================
    CARD ROW WRAPPER
    =========================== */
+
 .block-card {
   margin: 0 !important;
   padding: 0 !important;
 }
 
+/* On the left side, Streamlit gives the uploader widget
+   a default top margin. Kill it so the upload card hugs
+   its header closely. */
 .leaf-left div[data-testid="stFileUploader"] {
   margin-top: 0 !important;
 }
 
+/* Normalize spacing inside uploader layers */
 .upload-wrapper,
 .upload-wrapper > div[data-testid="stFileUploader"],
 .upload-wrapper section[data-testid="stFileUploaderDropzone"] {
@@ -106,6 +120,7 @@ div[data-testid="column"] > div:first-child {
 /* ===========================
    UPLOADER CARD (LEFT COLUMN)
    =========================== */
+
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
@@ -114,66 +129,38 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
 }
 
 /* ===========================
-   CAMERA CARD (RIGHT COLUMN)
+   CAMERA CARD (RIGHT COLUMN) – STREAMLIT NATIVE (RECOMMENDED)
    =========================== */
-.camera-card {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
 
+/* Style ONLY the container we mark as .cam-native */
+.cam-native {
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
   border-radius: 12px;
-
   padding: 16px 12px;
   min-height: 64px;
-  color: #6b7280;
   box-sizing: border-box;
-
-  margin: 0 !important;
 }
 
-.camera-hint {
+/* Text inside camera card */
+.cam-native .hint {
   font-size: 0.875rem;
   line-height: 1.4;
   color: #6b7280;
   margin: 0;
-
-  /* leave space for the button on desktop */
-  padding-right: 150px;
 }
 
-/* ==========================================================
-   FIX: MAKE THE REAL STREAMLIT BUTTON LOOK + SIT INSIDE THE CARD
-   We pull the st.button UP so it overlaps the camera card,
-   and right-align it (same as your old absolute HTML button).
-   This does NOT rely on :has()
-   ========================================================== */
-
-/* Target: the Streamlit button that immediately follows the markdown that contains .camera-card */
-div[data-testid="stMarkdown"] + div[data-testid="stButton"] {
-  /* DO NOT apply globally; we'll narrow it down below */
-}
-
-/* Narrow the scope: only inside the RIGHT column area */
-.leaf-right div[data-testid="stMarkdown"]:has(.camera-card) + div[data-testid="stButton"],
-.leaf-right div[data-testid="stMarkdown"] + div[data-testid="stButton"] {
-  /* The second selector is a fallback if :has() is not supported,
-     but only works correctly if your camera card markdown is the markdown right before the button. */
-
-  margin-top: -56px !important;           /* pulls button up into the card */
+/* Align the Open camera button top-right and match your old style */
+.cam-native div[data-testid="stButton"] {
   display: flex !important;
   justify-content: flex-end !important;
-  padding-right: 16px !important;         /* aligns with your old right:16px */
+  align-items: flex-start !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-/* Remove Streamlit default spacing around button */
-.leaf-right div[data-testid="stButton"] {
-  margin-bottom: 0 !important;
-}
-
-/* Style the actual button */
-.leaf-right div[data-testid="stButton"] button {
+/* The actual button */
+.cam-native div[data-testid="stButton"] button {
   background: #ffffff !important;
   color: #111827 !important;
   font-size: 0.875rem !important;
@@ -188,36 +175,30 @@ div[data-testid="stMarkdown"] + div[data-testid="stButton"] {
   box-shadow: none !important;
 }
 
-.leaf-right div[data-testid="stButton"] button:hover {
+.cam-native div[data-testid="stButton"] button:hover {
   border-color: #9CA3AF !important;
 }
 
 /* ===========================
    RESPONSIVE BEHAVIOR
    =========================== */
+
 @media (max-width: 680px) {
-  .camera-card {
-    flex-direction: column;
-  }
-
-  .camera-hint {
-    padding-right: 0;
-  }
-
-  /* On mobile we do NOT overlap; let it flow naturally under the hint */
-  .leaf-right div[data-testid="stMarkdown"]:has(.camera-card) + div[data-testid="stButton"],
-  .leaf-right div[data-testid="stMarkdown"] + div[data-testid="stButton"] {
-    margin-top: 10px !important;
-    padding-right: 0 !important;
-    justify-content: flex-start !important;
-  }
-
   .right-spacer {
     height: 16px;
   }
+
+  .cam-native {
+    padding: 14px 12px;
+  }
+
+  /* Mobile: let button flow under text */
+  .cam-native div[data-testid="stButton"] {
+    justify-content: flex-start !important;
+    margin-top: .5rem !important;
+  }
 }
 </style>
-
 """,
     unsafe_allow_html=True,
 )
