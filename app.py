@@ -95,7 +95,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
 }
 
 /* ===========================
-   CAMERA CARD (RIGHT) – st.container(border=True)
+   CAMERA CARD (RIGHT) – Scoped via anchor
    =========================== */
 
 /* Hint text */
@@ -106,38 +106,37 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   margin: 0 !important;
 }
 
-/* ---- BORDER look (outer) ---- */
-.leaf-right div[data-testid="stContainer"] {
+/* Target ONLY the container right after the anchor */
+#cam-card-anchor + div[data-testid="stContainer"] {
   border-radius: 12px !important;
 }
 
-/* Streamlit sometimes puts border on an inner wrapper */
-.leaf-right div[data-testid="stContainer"] > div {
+/* Border color consistency */
+#cam-card-anchor + div[data-testid="stContainer"] > div {
   border: 1.5px solid #E6E9EF !important;
   border-radius: 12px !important;
 }
 
-/* ---- FORCE GRAY BACKGROUND (paint-bucket) ----
-   Streamlit nests wrappers differently by version/theme, so we cover common levels. */
-.leaf-right div[data-testid="stContainer"],
-.leaf-right div[data-testid="stContainer"] > div,
-.leaf-right div[data-testid="stContainer"] > div > div,
-.leaf-right div[data-testid="stContainer"] > div > div > div,
-.leaf-right div[data-testid="stContainer"] section,
-.leaf-right div[data-testid="stContainer"] section > div,
-.leaf-right div[data-testid="stContainer"] section > div > div {
+/* ✅ Force gray background INSIDE that container (all likely wrapper levels) */
+#cam-card-anchor + div[data-testid="stContainer"],
+#cam-card-anchor + div[data-testid="stContainer"] > div,
+#cam-card-anchor + div[data-testid="stContainer"] > div > div,
+#cam-card-anchor + div[data-testid="stContainer"] > div > div > div,
+#cam-card-anchor + div[data-testid="stContainer"] section,
+#cam-card-anchor + div[data-testid="stContainer"] section > div,
+#cam-card-anchor + div[data-testid="stContainer"] section > div > div {
   background: #F6F8FB !important;
 }
 
-/* Ensure padding exists on the innermost “content” wrapper */
-.leaf-right div[data-testid="stContainer"] > div > div {
+/* Padding on the inner content wrapper */
+#cam-card-anchor + div[data-testid="stContainer"] > div > div {
   padding: 16px 12px !important;
   box-sizing: border-box !important;
   border-radius: 12px !important;
 }
 
-/* Button alignment (top-right) */
-.leaf-right div[data-testid="stContainer"] div[data-testid="stButton"]{
+/* Button alignment top-right */
+#cam-card-anchor + div[data-testid="stContainer"] div[data-testid="stButton"] {
   display: flex !important;
   justify-content: flex-end !important;
   align-items: flex-start !important;
@@ -146,8 +145,8 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   background: transparent !important;
 }
 
-/* Button style (override gray inheritance back to white) */
-.leaf-right div[data-testid="stContainer"] div[data-testid="stButton"] button{
+/* Button styling */
+#cam-card-anchor + div[data-testid="stContainer"] div[data-testid="stButton"] button {
   background: #ffffff !important;
   color: #111827 !important;
   font-size: 0.875rem !important;
@@ -162,28 +161,29 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   box-shadow: none !important;
 }
 
-.leaf-right div[data-testid="stContainer"] div[data-testid="stButton"] button:hover{
+#cam-card-anchor + div[data-testid="stContainer"] div[data-testid="stButton"] button:hover {
   border-color: #9CA3AF !important;
 }
 
 /* ===========================
-   RESPONSIVE (MOBILE)
+   RESPONSIVE
    =========================== */
-@media (max-width: 680px){
-  .leaf-right div[data-testid="stContainer"] > div > div {
+@media (max-width: 680px) {
+  #cam-card-anchor + div[data-testid="stContainer"] > div > div {
     padding: 14px 12px !important;
   }
 
-  .leaf-right div[data-testid="stContainer"] div[data-testid="stButton"]{
+  #cam-card-anchor + div[data-testid="stContainer"] div[data-testid="stButton"] {
     justify-content: flex-start !important;
     margin-top: .5rem !important;
   }
 
-  .leaf-right div[data-testid="stContainer"] div[data-testid="stButton"] button{
+  #cam-card-anchor + div[data-testid="stContainer"] div[data-testid="stButton"] button {
     min-width: 0 !important;
   }
 }
 </style>
+
 """, unsafe_allow_html=True)
 
 
@@ -422,13 +422,12 @@ with right:
 
     # NEW: spacer to push the card down
     if not st.session_state.show_camera:
+        st.markdown('<div id="cam-card-anchor"></div>', unsafe_allow_html=True)
+
         with st.container(border=True):
             c_hint, c_btn = st.columns([8, 2], vertical_alignment="top")
             with c_hint:
-                st.markdown(
-                    '<p class="cam-hint">Tap “Open camera” to take a photo.</p>',
-                    unsafe_allow_html=True
-                )
+                st.markdown('<p class="cam-hint">Tap “Open camera” to take a photo.</p>', unsafe_allow_html=True)
             with c_btn:
                 if st.button("Open camera", key="open_cam_btn"):
                     open_camera()
