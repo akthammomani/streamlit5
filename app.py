@@ -106,29 +106,33 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   margin: 0 !important;
 }
 
-/* Border + radius on the outer container */
-.leaf-right div[data-testid="stContainer"]{
+/* ---- BORDER look (outer) ---- */
+.leaf-right div[data-testid="stContainer"] {
   border-radius: 12px !important;
 }
 
-/* Streamlit draws the border on an inner wrapper sometimes.
-   Force border color consistency. */
-.leaf-right div[data-testid="stContainer"] > div{
+/* Streamlit sometimes puts border on an inner wrapper */
+.leaf-right div[data-testid="stContainer"] > div {
   border: 1.5px solid #E6E9EF !important;
   border-radius: 12px !important;
 }
 
-/* ---- Force gray background INSIDE the bordered container ----
-   Different Streamlit versions nest wrappers differently,
-   so we cover both likely levels safely. */
-.leaf-right div[data-testid="stContainer"] > div:first-child {
+/* ---- FORCE GRAY BACKGROUND (paint-bucket) ----
+   Streamlit nests wrappers differently by version/theme, so we cover common levels. */
+.leaf-right div[data-testid="stContainer"],
+.leaf-right div[data-testid="stContainer"] > div,
+.leaf-right div[data-testid="stContainer"] > div > div,
+.leaf-right div[data-testid="stContainer"] > div > div > div,
+.leaf-right div[data-testid="stContainer"] section,
+.leaf-right div[data-testid="stContainer"] section > div,
+.leaf-right div[data-testid="stContainer"] section > div > div {
   background: #F6F8FB !important;
-  border-radius: 12px !important;
-  padding: 16px 12px !important;
 }
 
-.leaf-right div[data-testid="stContainer"] > div:first-child > div:first-child {
-  background: #F6F8FB !important;
+/* Ensure padding exists on the innermost “content” wrapper */
+.leaf-right div[data-testid="stContainer"] > div > div {
+  padding: 16px 12px !important;
+  box-sizing: border-box !important;
   border-radius: 12px !important;
 }
 
@@ -139,9 +143,10 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   align-items: flex-start !important;
   margin: 0 !important;
   padding: 0 !important;
+  background: transparent !important;
 }
 
-/* Button style + prevent wrapping */
+/* Button style (override gray inheritance back to white) */
 .leaf-right div[data-testid="stContainer"] div[data-testid="stButton"] button{
   background: #ffffff !important;
   color: #111827 !important;
@@ -165,7 +170,7 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
    RESPONSIVE (MOBILE)
    =========================== */
 @media (max-width: 680px){
-  .leaf-right div[data-testid="stContainer"] > div:first-child {
+  .leaf-right div[data-testid="stContainer"] > div > div {
     padding: 14px 12px !important;
   }
 
@@ -179,7 +184,6 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   }
 }
 </style>
-
 """, unsafe_allow_html=True)
 
 
