@@ -34,19 +34,14 @@ st.markdown("""
 /* ===========================
    GLOBAL COLUMN CLEANUP
    =========================== */
-
-/* Streamlit gives each st.columns cell its own inner div with padding.
-   Kill that so both columns start at the same vertical origin. */
 div[data-testid="column"] > div:first-child {
   margin-top: 0 !important;
   padding-top: 0 !important;
 }
 
-/* Wrappers */
 .leaf-left { }
 .leaf-right { }
 
-/* Inner container for each column’s content. */
 .leaf-block {
   display: block;
   margin: 0;
@@ -54,20 +49,17 @@ div[data-testid="column"] > div:first-child {
 }
 
 /* ===========================
-   HEADER (TITLE + SUBTITLE)
+   HEADERS (TITLE + SUBTITLE)
    =========================== */
-
 .block-head {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  margin: 0;
+  margin: 0 0 8px 0;
   padding: 0;
   line-height: 1.4;
-  margin-bottom: 8px;
 }
 
-/* Title ("Upload Photo", "Record Photo") */
 .title {
   font-size: 1rem;
   font-weight: 600;
@@ -76,7 +68,6 @@ div[data-testid="column"] > div:first-child {
   line-height: 1.4;
 }
 
-/* Subtitle */
 .sub {
   font-size: 0.875rem;
   font-weight: 400;
@@ -88,39 +79,24 @@ div[data-testid="column"] > div:first-child {
 /* ===========================
    ALIGNMENT SPACER (RIGHT ONLY)
    =========================== */
-
 .right-spacer {
   height: 45px;
   width: 100%;
 }
 
 /* ===========================
-   CARD ROW WRAPPER
+   UPLOADER CARD (LEFT COLUMN)
    =========================== */
-
-.block-card {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* On the left side, Streamlit gives the uploader widget
-   a default top margin. Kill it so the upload card hugs
-   its header closely. */
 .leaf-left div[data-testid="stFileUploader"] {
   margin-top: 0 !important;
 }
 
-/* Normalize spacing inside uploader layers */
 .upload-wrapper,
 .upload-wrapper > div[data-testid="stFileUploader"],
 .upload-wrapper section[data-testid="stFileUploaderDropzone"] {
   margin: 0 !important;
   padding: 0 !important;
 }
-
-/* ===========================
-   UPLOADER CARD (LEFT COLUMN)
-   =========================== */
 
 div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
   border: 1.5px solid #E6E9EF;
@@ -129,30 +105,38 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   padding: 12px;
 }
 
-/* ===========================
-   CAMERA CARD (RIGHT COLUMN) – STREAMLIT NATIVE (RECOMMENDED)
-   =========================== */
+/* ==========================================================
+   CAMERA "CARD" (RIGHT COLUMN) – ANCHOR + SIBLING STYLING
+   We style the Streamlit columns block that comes right after
+   .cam-anchor, so everything (text + button) is inside the card.
+   ========================================================== */
 
-/* Style ONLY the container we mark as .cam-native */
-.cam-native {
+/* The Streamlit columns container right after the anchor */
+.cam-anchor + div[data-testid="stHorizontalBlock"] {
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
   border-radius: 12px;
   padding: 16px 12px;
   min-height: 64px;
   box-sizing: border-box;
+  align-items: flex-start;
 }
 
-/* Text inside camera card */
-.cam-native .hint {
+/* Remove extra margins inside the card */
+.cam-anchor + div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+  margin-top: 0 !important;
+}
+
+/* Hint text style */
+.cam-hint {
   font-size: 0.875rem;
   line-height: 1.4;
   color: #6b7280;
   margin: 0;
 }
 
-/* Align the Open camera button top-right and match your old style */
-.cam-native div[data-testid="stButton"] {
+/* Right column: align button to top-right */
+.cam-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="column"]:last-child div[data-testid="stButton"] {
   display: flex !important;
   justify-content: flex-end !important;
   align-items: flex-start !important;
@@ -160,8 +144,8 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   padding: 0 !important;
 }
 
-/* The actual button */
-.cam-native div[data-testid="stButton"] button {
+/* Button style + prevent wrapping */
+.cam-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button {
   background: #ffffff !important;
   color: #111827 !important;
   font-size: 0.875rem !important;
@@ -169,38 +153,41 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
 
   border: 1px solid #D1D5DB !important;
   border-radius: 8px !important;
+
   padding: .45rem .8rem !important;
+  min-width: 120px !important;      /* ✅ prevents “Open / came / ra” */
+  width: auto !important;
 
   cursor: pointer !important;
-  white-space: nowrap !important;
+  white-space: nowrap !important;   /* ✅ keep text on one line */
   box-shadow: none !important;
 }
 
-.cam-native div[data-testid="stButton"] button:hover {
+.cam-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button:hover {
   border-color: #9CA3AF !important;
 }
 
 /* ===========================
-   RESPONSIVE BEHAVIOR
+   RESPONSIVE
    =========================== */
-
 @media (max-width: 680px) {
-  .right-spacer {
-    height: 16px;
-  }
+  .right-spacer { height: 16px; }
 
-  .cam-native {
+  .cam-anchor + div[data-testid="stHorizontalBlock"] {
     padding: 14px 12px;
   }
 
-  /* Mobile: let button flow under text */
-  .cam-native div[data-testid="stButton"] {
+  /* On small screens: let button flow under text */
+  .cam-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="column"]:last-child div[data-testid="stButton"] {
     justify-content: flex-start !important;
     margin-top: .5rem !important;
   }
+
+  .cam-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button {
+    min-width: 0 !important;
+  }
 }
 </style>
-
 """, unsafe_allow_html=True)
 
 
@@ -441,15 +428,15 @@ with right:
     st.markdown('<div class="right-spacer"></div>', unsafe_allow_html=True)
 
     if not st.session_state.show_camera:
-        # Native Streamlit card (stable layout)
-        st.markdown('<div class="cam-native">', unsafe_allow_html=True)
-        c_hint, c_btn = st.columns([6, 1], vertical_alignment="top")
+         # anchor that lets CSS style the NEXT Streamlit columns block as the "card"
+        st.markdown('<div class="cam-anchor"></div>', unsafe_allow_html=True)
+    
+        c_hint, c_btn = st.columns([8, 2], vertical_alignment="top")
         with c_hint:
-            st.markdown('<p class="hint">Tap “Open camera” to take a photo.</p>', unsafe_allow_html=True)
+            st.markdown('<p class="cam-hint">Tap “Open camera” to take a photo.</p>', unsafe_allow_html=True)
         with c_btn:
             if st.button("Open camera", key="open_cam_btn"):
                 open_camera()
-        st.markdown('</div>', unsafe_allow_html=True)
     
         cap = None
     else:
