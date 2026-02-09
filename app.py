@@ -42,9 +42,9 @@ div[data-testid="column"] > div:first-child {
   padding-top: 0 !important;
 }
 
-/* We'll wrap each column in .leaf-left / .leaf-right in the Python code */
-.leaf-left { /* left column wrapper */ }
-.leaf-right { /* right column wrapper */ }
+/* Wrappers */
+.leaf-left { }
+.leaf-right { }
 
 /* Inner container for each column’s content. */
 .leaf-block {
@@ -53,12 +53,10 @@ div[data-testid="column"] > div:first-child {
   padding: 0;
 }
 
-
 /* ===========================
    HEADER (TITLE + SUBTITLE)
    =========================== */
 
-/* Wrapper around "Upload Photo" / "Record Photo" + subtitle text */
 .block-head {
   display: flex;
   flex-direction: column;
@@ -66,45 +64,35 @@ div[data-testid="column"] > div:first-child {
   margin: 0;
   padding: 0;
   line-height: 1.4;
-}
-
-/* Header title ("Upload Photo", "Record Photo") */
-.block-head .title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1f2937;      /* slate-800-ish */
-  margin: 0;
-  line-height: 1.4;
-}
-
-/* Header subtitle ("Drop a JPG/PNG...", "Use your device camera") */
-.block-head .sub {
-  font-size: 0.875rem;
-  font-weight: 400;
-  color: #6b7280;      /* gray-500/600 */
-  margin: 0;
-  line-height: 1.4;
-}
-
-/* A consistent little gap below the header before its card (both columns) */
-.block-head {
   margin-bottom: 8px;
 }
 
+/* Title ("Upload Photo", "Record Photo") */
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Subtitle */
+.sub {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.4;
+}
 
 /* ===========================
    ALIGNMENT SPACER (RIGHT ONLY)
    =========================== */
 
-/* This spacer will ONLY exist in the right column,
-   and it will push the camera card down so that the top
-   of the camera card lines up with the top of the upload card.
-   Adjust height until visually perfect. */
 .right-spacer {
-  height: 45px;   /* try 45, bump to 50 if camera card still too high */
+  height: 45px;
   width: 100%;
 }
-
 
 /* ===========================
    CARD ROW WRAPPER
@@ -130,7 +118,6 @@ div[data-testid="column"] > div:first-child {
   padding: 0 !important;
 }
 
-
 /* ===========================
    UPLOADER CARD (LEFT COLUMN)
    =========================== */
@@ -142,91 +129,78 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   padding: 12px;
 }
 
-
 /* ===========================
-   CAMERA CARD (RIGHT COLUMN)
+   CAMERA CARD (RIGHT COLUMN) – STREAMLIT NATIVE (RECOMMENDED)
    =========================== */
 
-.camera-card {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-
+/* Style ONLY the container we mark as .cam-native */
+.cam-native {
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
   border-radius: 12px;
-
   padding: 16px 12px;
   min-height: 64px;
-  color: #6b7280;
   box-sizing: border-box;
-
-  margin: 0 !important; /* prevent Streamlit surprises */
 }
 
 /* Text inside camera card */
-.camera-hint {
+.cam-native .hint {
   font-size: 0.875rem;
   line-height: 1.4;
   color: #6b7280;
   margin: 0;
-
-  /* Make room for the "Open camera" button on desktop */
-  padding-right: 150px;
 }
 
-/* "Open camera" button */
-.custom-cam-btn {
-  position: absolute;
-  right: 16px;
-  top: 8px;
-
-  background: #ffffff;
-  color: #111827;
-  font-size: 0.875rem;
-  line-height: 1.2;
-
-  border: 1px solid #D1D5DB;
-  border-radius: 8px;
-  padding: .45rem .8rem;
-
-  cursor: pointer;
-  white-space: nowrap;
+/* Align the Open camera button top-right and match your old style */
+.cam-native div[data-testid="stButton"] {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: flex-start !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-.custom-cam-btn:hover {
-  border-color: #9CA3AF;
+/* The actual button */
+.cam-native div[data-testid="stButton"] button {
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-size: 0.875rem !important;
+  line-height: 1.2 !important;
+
+  border: 1px solid #D1D5DB !important;
+  border-radius: 8px !important;
+  padding: .45rem .8rem !important;
+
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  box-shadow: none !important;
 }
 
+.cam-native div[data-testid="stButton"] button:hover {
+  border-color: #9CA3AF !important;
+}
 
 /* ===========================
    RESPONSIVE BEHAVIOR
    =========================== */
 
 @media (max-width: 680px) {
-
-  /* Stack vertical inside the camera card on small screens */
-  .camera-card {
-    flex-direction: column;
-  }
-
-  .camera-hint {
-    padding-right: 0;
-  }
-
-  .custom-cam-btn {
-    position: static !important;
-    margin-top: .5rem !important;
-  }
-
-  /* On narrow screens, we don't want a huge offset,
-     so shrink the spacer. */
   .right-spacer {
     height: 16px;
   }
-}
 
+  .cam-native {
+    padding: 14px 12px;
+  }
+
+  /* Mobile: let button flow under text */
+  .cam-native div[data-testid="stButton"] {
+    justify-content: flex-start !important;
+    margin-top: .5rem !important;
+  }
+}
 </style>
+
 """, unsafe_allow_html=True)
 
 
@@ -467,33 +441,16 @@ with right:
     st.markdown('<div class="right-spacer"></div>', unsafe_allow_html=True)
 
     if not st.session_state.show_camera:
-        # Camera closed view
-        st.markdown(
-            '<div class="block-card">'
-            '  <div class="camera-card">'
-            '    <p class="camera-hint">Tap “Open camera” to take a photo.</p>'
-            '    <button id="open_cam_real" class="custom-cam-btn">Open camera</button>'
-            '  </div>'
-            '</div>',
-            unsafe_allow_html=True
-        )
-
-        js_result = st_javascript("""
-        (function(){
-          const btn = window.parent.document.getElementById("open_cam_real");
-          if(btn){
-            btn.onclick = function(){
-              window.parent.postMessage({type:"streamlit:setComponentValue", value:true}, "*");
-            };
-          }
-        })();
-        """, key="open_cam_js")
-
-        if js_result:
-            st.session_state.show_camera = True
-            st.session_state.source = "camera"
-            st.session_state.upload = None
-
+        # Native Streamlit card (stable layout)
+        st.markdown('<div class="cam-native">', unsafe_allow_html=True)
+        c_hint, c_btn = st.columns([6, 1], vertical_alignment="top")
+        with c_hint:
+            st.markdown('<p class="hint">Tap “Open camera” to take a photo.</p>', unsafe_allow_html=True)
+        with c_btn:
+            if st.button("Open camera", key="open_cam_btn"):
+                open_camera()
+        st.markdown('</div>', unsafe_allow_html=True)
+    
         cap = None
     else:
         # Camera open view
