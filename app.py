@@ -422,18 +422,15 @@ with right:
     st.markdown('<div class="right-spacer"></div>', unsafe_allow_html=True)
 
     if not st.session_state.show_camera:
-        # Camera closed view (HTML card + REAL Streamlit button positioned via CSS)
-        st.markdown(
-            '<div class="block-card">'
-            '  <div class="camera-card">'
-            '    <p class="camera-hint">Tap “Open camera” to take a photo.</p>'
-            '  </div>'
-            '</div>',
-            unsafe_allow_html=True
-        )
-    
-        if st.button("Open camera", key="open_cam_btn"):
-            open_camera()
+        # Native Streamlit card (stable layout)
+        st.markdown('<div class="cam-native">', unsafe_allow_html=True)
+        c_hint, c_btn = st.columns([6, 1], vertical_alignment="top")
+        with c_hint:
+            st.markdown('<p class="hint">Tap “Open camera” to take a photo.</p>', unsafe_allow_html=True)
+        with c_btn:
+            if st.button("Open camera", key="open_cam_btn"):
+                open_camera()
+        st.markdown('</div>', unsafe_allow_html=True)
     
         cap = None
     else:
