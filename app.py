@@ -49,17 +49,8 @@ div[data-testid="column"] > div:first-child {
 }
 
 /* ===========================
-   HEADERS (TITLE + SUBTITLE)
+   TITLES / SUBTITLES
    =========================== */
-.block-head {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  margin: 0 0 8px 0;
-  padding: 0;
-  line-height: 1.4;
-}
-
 .title {
   font-size: 1rem;
   font-weight: 600;
@@ -76,16 +67,22 @@ div[data-testid="column"] > div:first-child {
   line-height: 1.4;
 }
 
+.block-head { margin-bottom: 8px; }
+
 /* ===========================
-   ALIGNMENT SPACER (RIGHT ONLY)
+   RIGHT SPACER (keep alignment)
    =========================== */
 .right-spacer {
   height: 45px;
   width: 100%;
 }
 
+@media (max-width: 680px) {
+  .right-spacer { height: 16px; }
+}
+
 /* ===========================
-   UPLOADER CARD (LEFT COLUMN)
+   UPLOADER CARD (LEFT)
    =========================== */
 .leaf-left div[data-testid="stFileUploader"] {
   margin-top: 0 !important;
@@ -106,28 +103,11 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
 }
 
 /* ==========================================================
-   CAMERA "CARD" (RIGHT COLUMN) – ANCHOR + SIBLING STYLING
-   We style the Streamlit columns block that comes right after
-   .cam-anchor, so everything (text + button) is inside the card.
+   CAMERA CARD (RIGHT) — STYLE THE REAL STREAMLIT COLUMNS ROW
+   We target the horizontal block that CONTAINS .cam-hint
    ========================================================== */
 
-/* The Streamlit columns container right after the anchor */
-.cam-anchor + div[data-testid="stHorizontalBlock"] {
-  border: 1.5px solid #E6E9EF;
-  background: #F6F8FB;
-  border-radius: 12px;
-  padding: 16px 12px;
-  min-height: 64px;
-  box-sizing: border-box;
-  align-items: flex-start;
-}
-
-/* Remove extra margins inside the card */
-.cam-anchor + div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
-  margin-top: 0 !important;
-}
-
-/* Hint text style */
+/* Hint text */
 .cam-hint {
   font-size: 0.875rem;
   line-height: 1.4;
@@ -135,8 +115,27 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   margin: 0;
 }
 
-/* Right column: align button to top-right */
-.cam-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="column"]:last-child div[data-testid="stButton"] {
+/* The "card" is the Streamlit horizontal block that contains the hint */
+.leaf-right div[data-testid="stHorizontalBlock"]:has(.cam-hint) {
+  border: 1.5px solid #E6E9EF;
+  background: #F6F8FB;
+  border-radius: 12px;
+  padding: 16px 12px;
+  min-height: 64px;
+  box-sizing: border-box;
+  align-items: flex-start;
+  margin: 0 !important;
+}
+
+/* Tighten inner column spacing */
+.leaf-right div[data-testid="stHorizontalBlock"]:has(.cam-hint) > div[data-testid="column"] {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Right column: keep button top-right */
+.leaf-right div[data-testid="stHorizontalBlock"]:has(.cam-hint)
+  > div[data-testid="column"]:last-child div[data-testid="stButton"] {
   display: flex !important;
   justify-content: flex-end !important;
   align-items: flex-start !important;
@@ -144,8 +143,8 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
   padding: 0 !important;
 }
 
-/* Button style + prevent wrapping */
-.cam-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button {
+/* Style the actual Streamlit button */
+.leaf-right div[data-testid="stHorizontalBlock"]:has(.cam-hint) div[data-testid="stButton"] button {
   background: #ffffff !important;
   color: #111827 !important;
   font-size: 0.875rem !important;
@@ -153,41 +152,35 @@ div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] 
 
   border: 1px solid #D1D5DB !important;
   border-radius: 8px !important;
-
   padding: .45rem .8rem !important;
-  min-width: 120px !important;      /* ✅ prevents “Open / came / ra” */
-  width: auto !important;
 
-  cursor: pointer !important;
-  white-space: nowrap !important;   /* ✅ keep text on one line */
+  min-width: 120px !important;     /* prevents wrapping */
+  white-space: nowrap !important;  /* prevents wrapping */
   box-shadow: none !important;
 }
 
-.cam-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button:hover {
+.leaf-right div[data-testid="stHorizontalBlock"]:has(.cam-hint) div[data-testid="stButton"] button:hover {
   border-color: #9CA3AF !important;
 }
 
-/* ===========================
-   RESPONSIVE
-   =========================== */
+/* Mobile: stack naturally, button under hint */
 @media (max-width: 680px) {
-  .right-spacer { height: 16px; }
-
-  .cam-anchor + div[data-testid="stHorizontalBlock"] {
+  .leaf-right div[data-testid="stHorizontalBlock"]:has(.cam-hint) {
     padding: 14px 12px;
   }
 
-  /* On small screens: let button flow under text */
-  .cam-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="column"]:last-child div[data-testid="stButton"] {
+  .leaf-right div[data-testid="stHorizontalBlock"]:has(.cam-hint)
+    > div[data-testid="column"]:last-child div[data-testid="stButton"] {
     justify-content: flex-start !important;
     margin-top: .5rem !important;
   }
 
-  .cam-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button {
+  .leaf-right div[data-testid="stHorizontalBlock"]:has(.cam-hint) div[data-testid="stButton"] button {
     min-width: 0 !important;
   }
 }
 </style>
+
 """, unsafe_allow_html=True)
 
 
@@ -428,16 +421,12 @@ with right:
     st.markdown('<div class="right-spacer"></div>', unsafe_allow_html=True)
 
     if not st.session_state.show_camera:
-         # anchor that lets CSS style the NEXT Streamlit columns block as the "card"
-        st.markdown('<div class="cam-anchor"></div>', unsafe_allow_html=True)
-    
         c_hint, c_btn = st.columns([8, 2], vertical_alignment="top")
         with c_hint:
             st.markdown('<p class="cam-hint">Tap “Open camera” to take a photo.</p>', unsafe_allow_html=True)
         with c_btn:
             if st.button("Open camera", key="open_cam_btn"):
                 open_camera()
-    
         cap = None
     else:
         # Camera open view
