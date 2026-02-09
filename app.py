@@ -400,8 +400,7 @@ with right:
     )
 
     # NEW: spacer to push the card down
-    st.markdown('<div class="right-spacer"></div>', unsafe_allow_html=True)
-
+    st.markdown('<div class="right-spacer"></div>', unsafe_allow_html=True):
         with st.container(border=True):
             c_hint, c_btn = st.columns([8, 2], vertical_alignment="top")
             with c_hint:
