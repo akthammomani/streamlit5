@@ -240,6 +240,26 @@ components.html(
 if Path(BANNER).exists():
     st.image(BANNER, use_container_width=True)
 
+st.markdown("## Introduction")
+
+st.markdown("""
+The **AI-Powered Apple Leaf Specialist** is a lightweight, real-time computer vision
+application designed to help apple growers quickly identify common leaf conditions
+using a single photo. By leveraging a fine-tuned ResNet-18 deep learning model with
+calibrated probability outputs, the system classifies leaf images into one of four
+conditions: **healthy, scab, rust, or black rot**, while intelligently routing
+low-confidence predictions to an **“unknown”** label to prevent overconfident
+misclassification.
+
+The app supports both image upload and live camera capture. It performs deterministic
+preprocessing and local TorchScript inference on CPU without requiring cloud
+connectivity. Built-in brightness validation and leaf-likeness checks improve reliability
+and reduce false positives, making it a practical and accessible decision-support tool.
+""")
+
+# Separator line
+st.markdown("---")
+
 # -------------------- Helpers --------------------
 def _load_json(p: Path, default):
     try:
