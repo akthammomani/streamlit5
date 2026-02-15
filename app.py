@@ -26,7 +26,7 @@ bright_thr    = 0.90
 PREVIEW_MAX_W = 420
 PREVIEW_MAX_H = 420
 
-# Camera leaf-gate defaults (you referenced these later; keep them defined)
+# Camera leaf-gate defaults (used later)
 cov_min = 0.04
 tex_min = 25.0
 
@@ -42,55 +42,116 @@ st.set_page_config(
 st.markdown(
     """
 <style>
-/* Keep sidebar expanded + hide collapse controls (best-effort; Streamlit doesn't offer a true "uncollapsible" API) */
-button[kind="headerNoPadding"],
-button[data-testid="collapsedControl"] { display:none !important; }
-div[data-testid="stSidebarNav"] { display:none; }
+/* =========================
+   SIDEBAR WIDTH (wider)
+   ========================= */
+:root{
+  --sb-w: 420px;              /* adjust: 380 / 420 / 460 */
+}
+section[data-testid="stSidebar"]{
+  width: var(--sb-w) !important;
+  min-width: var(--sb-w) !important;
+  background: #ffffff !important;     /* unified background */
+}
+section[data-testid="stSidebar"] > div{
+  width: var(--sb-w) !important;
+}
 
-/* Sidebar section titles */
-.sb-title {
-  font-size: 1.05rem;
-  font-weight: 700;
+/* Keep sidebar expanded + hide collapse controls (best-effort; Streamlit doesn't offer true "uncollapsible") */
+button[data-testid="collapsedControl"]{ display:none !important; }
+section[data-testid="stSidebar"] div[data-testid="stSidebarNav"]{ display:none; }
+
+/* Make all sidebar internals transparent so the sidebar bg wins */
+section[data-testid="stSidebar"] *{
+  background-color: transparent;
+}
+
+/* =========================
+   TYPOGRAPHY / HIERARCHY
+   ========================= */
+.sb-app-title{
+  font-size: 1.35rem;
+  font-weight: 800;
   color: #111827;
-  margin: .2rem 0 .4rem 0;
+  line-height: 1.2;
+  text-align: center;
+  margin: .35rem 0 .55rem 0;
 }
-.sb-sub {
-  font-size: .85rem;
+.sb-divider{
+  height: 3px;
+  background: #E5E7EB;
+  border-radius: 999px;
+  margin: .4rem 0 1rem 0;
+}
+.sb-h1{
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 .35rem 0;
+}
+.sb-sub{
+  font-size: .86rem;
   color: #6b7280;
-  margin: 0 0 .75rem 0;
+  margin: 0 0 .85rem 0;
 }
 
-/* Card look for uploader/camera inside sidebar */
-.sb-card {
+/* =========================
+   WHITE CARDS (same background everywhere)
+   ========================= */
+.sb-card{
   border: 1.5px solid #E6E9EF;
-  background: #F6F8FB;
+  background: #ffffff !important;
   border-radius: 12px;
   padding: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
-.sb-card .title {
+.sb-sec-title{
   font-size: .95rem;
-  font-weight: 650;
-  color: #1f2937;
+  font-weight: 750;
+  color: #111827;
   margin: 0 0 2px 0;
-  line-height: 1.2;
 }
-.sb-card .sub {
+.sb-sec-sub{
   font-size: .82rem;
   color: #6b7280;
   margin: 0 0 10px 0;
-  line-height: 1.2;
 }
 
-/* Make sidebar file uploader dropzone match the card */
-div[data-testid="stSidebar"] div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
+/* Small separator between Upload / Record */
+.sb-mini-sep{
+  height: 1px;
+  background: #EEF2F7;
+  margin: 10px 2px;
+}
+
+/* File uploader dropzone must be white too */
+section[data-testid="stSidebar"] div[data-testid="stFileUploaderDropzone"]{
+  background: #ffffff !important;
   border: 1.5px solid #E6E9EF !important;
-  background: #F6F8FB !important;
   border-radius: 12px !important;
 }
 
-/* Slightly tighten sidebar spacing */
-div[data-testid="stSidebar"] .stButton button { border-radius: 8px !important; }
+/* Remove leftover gray wrappers */
+section[data-testid="stSidebar"] div[data-testid="stFileUploader"],
+section[data-testid="stSidebar"] div[data-testid="stFileUploader"] section,
+section[data-testid="stSidebar"] div[data-testid="stFileUploader"] section > div{
+  background: transparent !important;
+}
+
+/* Tighten sidebar spacing */
+section[data-testid="stSidebar"] .block-container{ padding-top: .6rem; }
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"]{ gap: .65rem; }
+
+/* Buttons */
+section[data-testid="stSidebar"] .stButton button{
+  border-radius: 8px !important;
+}
+
+/* Main area info spacing */
+div[data-testid="column"] > div:first-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
 </style>
 """,
     unsafe_allow_html=True
@@ -193,8 +254,10 @@ def render_prob_bars_native(prob_map: dict):
         c1, c2, c3 = st.columns([1.6, 6, 1.2])
         with c1: st.write(_pretty(lab))
         with c2:
-            try: st.progress(p)
-            except Exception: st.progress(int(p*100))
+            try:
+                st.progress(p)
+            except Exception:
+                st.progress(int(p * 100))
         with c3: st.write(f"{p*100:.1f}%")
 
 # -------------------- Posters --------------------
@@ -206,10 +269,10 @@ CARE_POSTERS = {
 }
 
 # -------------------- Session state --------------------
-if "show_camera" not in st.session_state:   st.session_state.show_camera = False
-if "source" not in st.session_state:        st.session_state.source = None
-if "captured" not in st.session_state:      st.session_state.captured = None
-if "upload" not in st.session_state:        st.session_state.upload = None
+if "show_camera" not in st.session_state:     st.session_state.show_camera = False
+if "source" not in st.session_state:         st.session_state.source = None
+if "captured" not in st.session_state:       st.session_state.captured = None
+if "upload" not in st.session_state:         st.session_state.upload = None
 if "keep_camera_on" not in st.session_state: st.session_state.keep_camera_on = False
 
 def open_camera():
@@ -225,65 +288,50 @@ def on_upload_change():
     st.session_state.source = "upload"
     st.session_state.show_camera = False
 
-# -------------------- Sidebar helpers --------------------
-def sidebar_logo(title: str, path: str):
-    if Path(path).exists():
-        b64 = base64.b64encode(Path(path).read_bytes()).decode()
-        ext = Path(path).suffix.lstrip(".").lower() or "png"
-        img_html = (
-            f'<img src="data:image/{ext};base64,{b64}" '
-            f'style="max-width:110px; height:auto; display:block;" alt="logo" />'
+# -------------------- Sidebar UI (inputs moved here) --------------------
+with st.sidebar:
+    # Logo
+    if Path(APP_LOGO).exists():
+        b64 = base64.b64encode(Path(APP_LOGO).read_bytes()).decode()
+        ext = Path(APP_LOGO).suffix.lstrip(".").lower() or "png"
+        st.markdown(
+            f"""
+            <div style="display:flex;justify-content:center;margin-top:.2rem;">
+              <img src="data:image/{ext};base64,{b64}" style="max-width:120px;height:auto;" />
+            </div>
+            """,
+            unsafe_allow_html=True
         )
     else:
-        img_html = '<div style="font-size:48px">🍎</div>'
+        st.markdown('<div style="text-align:center;font-size:52px">🍎</div>', unsafe_allow_html=True)
 
-    st.markdown(
-        f'''
-        <div style="
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            gap:.6rem;
-            margin-bottom:1rem;
-            text-align:center;
-        ">
-            {img_html}
-            <div style="
-                font-weight:700;
-                font-size:1.0rem;
-                line-height:1.2;
-                color:#2c313f;
-            ">
-                {title}
-            </div>
-        </div>
-        ''',
-        unsafe_allow_html=True
-    )
+    # Title + thick separator
+    st.markdown('<div class="sb-app-title">AI-Powered Apple Leaf Specialist</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-divider"></div>', unsafe_allow_html=True)
 
-# -------------------- Sidebar: inputs moved here (stacked) --------------------
-with st.sidebar:
-    sidebar_logo("AI-Powered Apple Leaf Specialist", APP_LOGO)
-
-    st.markdown('<div class="sb-title">Add a leaf photo</div>', unsafe_allow_html=True)
+    # Section header
+    st.markdown('<div class="sb-h1">Add a leaf photo</div>', unsafe_allow_html=True)
     st.markdown('<div class="sb-sub">Upload a file or take a photo using your camera.</div>', unsafe_allow_html=True)
 
-    # Upload block
+    # Upload card
     st.markdown('<div class="sb-card">', unsafe_allow_html=True)
-    st.markdown('<div class="title">Upload Photo</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub">Drop a JPG/PNG here, or browse</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-sec-title">Upload Photo</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-sec-sub">Drop a JPG/PNG here, or browse</div>', unsafe_allow_html=True)
     st.file_uploader(
         label="",
         type=["jpg", "jpeg", "png"],
         key="uploader",
         on_change=on_upload_change,
     )
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    # Camera block
+    # Small separator inside section
+    st.markdown('<div class="sb-mini-sep"></div>', unsafe_allow_html=True)
+
+    # Record card
     st.markdown('<div class="sb-card">', unsafe_allow_html=True)
-    st.markdown('<div class="title">Record Photo</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub">Use your device camera</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-sec-title">Record Photo</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-sec-sub">Use your device camera</div>', unsafe_allow_html=True)
 
     if not st.session_state.show_camera:
         c_hint, c_btn = st.columns([6, 4], vertical_alignment="center")
@@ -299,10 +347,9 @@ with st.sidebar:
             st.session_state.source = "camera"
             if not st.session_state.keep_camera_on:
                 st.session_state.show_camera = False
-
         st.button("Close camera", on_click=close_camera, key="close_cam_btn")
 
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     st.write("---")
     st.write("""
