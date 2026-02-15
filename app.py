@@ -178,14 +178,23 @@ div[data-testid="column"] > div:first-child{
 st.markdown(
 """
 <style>
-/* Fallback: hide any sidebar element container that contains an input (the empty bars) */
-section[data-testid="stSidebar"] div[data-testid="stElementContainer"] input[type="text"],
-section[data-testid="stSidebar"] div[data-testid="stElementContainer"] input[type="search"]{
+/* ✅ Remove ONLY the isolated rounded empty “bars” in the sidebar */
+section[data-testid="stSidebar"] div[data-testid="stElementContainer"]:empty{
+  display: none !important;
+}
+
+/* ✅ Some Streamlit builds don’t leave it truly empty; they contain only whitespace/BR.
+   Hide containers that have no visible children (common in these ghost bars). */
+section[data-testid="stSidebar"] div[data-testid="stElementContainer"] > div:empty{
   display:none !important;
 }
+section[data-testid="stSidebar"] div[data-testid="stElementContainer"] > div > div:empty{
+  display:none !important;
+}
+
+/* ✅ Defensive: if the ghost bar is a bordered container with no widgets, kill its border/background */
 section[data-testid="stSidebar"] div[data-testid="stElementContainer"]{
-  border:none !important;
-  box-shadow:none !important;
+  box-shadow: none !important;
 }
 </style>
 """,
