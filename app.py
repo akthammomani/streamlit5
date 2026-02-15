@@ -243,21 +243,11 @@ if Path(BANNER).exists():
 st.markdown("## Introduction")
 
 st.markdown("""
-The **AI-Powered Apple Leaf Specialist** is a lightweight, real-time computer vision
-application designed to help apple growers quickly identify common leaf conditions
-using a single photo. By leveraging a fine-tuned ResNet-18 deep learning model with
-calibrated probability outputs, the system classifies leaf images into one of four
-conditions: **healthy, scab, rust, or black rot**, while intelligently routing
-low-confidence predictions to an **“unknown”** label to prevent overconfident
-misclassification.
+The **AI-Powered Apple Leaf Specialist** is a lightweight, real-time computer vision application designed to help apple growers quickly identify common apple leaf conditions using a single photo. Using a fine-tuned ResNet-18 deep learning model with calibrated probability outputs, the system classifies leaf images into one of four conditions: **healthy, scab, rust, or black rot**. When the model confidence is low, the app conservatively routes the result to an **“unknown”** label to avoid overconfident misclassification.
 
-The app supports both image upload and live camera capture. It performs deterministic
-preprocessing and local TorchScript inference on CPU without requiring cloud
-connectivity. Built-in brightness validation and leaf-likeness checks improve reliability
-and reduce false positives, making it a practical and accessible decision-support tool.
+The app supports both image upload and live camera capture, applies deterministic preprocessing, and runs local TorchScript inference on CPU without requiring cloud connectivity. After prediction, the app displays class probabilities and provides **tailored care recommendations specific to the predicted disease**, helping users take the next best step (prevention, treatment, and best practices) based on the detected condition.
 """)
 
-# Separator line
 st.markdown("---")
 
 # -------------------- Helpers --------------------
