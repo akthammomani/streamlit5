@@ -6,6 +6,7 @@ import base64
 import numpy as np
 from PIL import Image, ImageOps
 import streamlit as st
+import streamlit.components.v1 as components   # ✅ ADDED
 import torch
 import torchvision.transforms as T
 
@@ -39,15 +40,9 @@ st.set_page_config(
 )
 
 # -------------------- CSS --------------------
-# Change ONLY what you asked:
-# - keep layout as-is (no pulling everything to the very top)
-# - remove the isolated rounded borders (they are the sidebar "ghost" text inputs)
 st.markdown(
     """
 <style>
-/* =========================
-   SIDEBAR: wider + gray bg
-   ========================= */
 :root{
   --sb-w: 420px;
   --sb-bg: #F3F4F6;
@@ -67,50 +62,16 @@ section[data-testid="stSidebar"] > div{
   background: var(--sb-bg) !important;
 }
 
-/* Keep the normal top spacing in sidebar (DON'T pull everything up) */
 section[data-testid="stSidebar"] .block-container{
-  padding-top: 1rem !important;   /* keeps it looking natural */
+  padding-top: 1rem !important;
   background: var(--sb-bg) !important;
 }
 
-/* Best-effort: prevent collapsing by hiding the collapse control */
+/* best-effort: hide collapse control (Streamlit has no hard-lock API) */
 button[data-testid="collapsedControl"]{ display:none !important; }
 section[data-testid="stSidebar"] div[data-testid="stSidebarNav"]{ display:none; }
 
-/* =========================
-   REMOVE THE ISOLATED ROUNDED BORDERS
-   =========================
-   These "pills" are Streamlit sidebar ghost text inputs.
-   Instead of display:none (which leaves weird shells on some builds),
-   we collapse them to zero height + zero border.
-*/
-section[data-testid="stSidebar"] div[data-testid="stTextInput"]{
-  height: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  overflow: hidden !important;
-}
-section[data-testid="stSidebar"] div[data-testid="stTextInput"] *{
-  height: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  overflow: hidden !important;
-}
-section[data-testid="stSidebar"] input[type="text"],
-section[data-testid="stSidebar"] input[type="search"]{
-  display: none !important;
-}
-
-/* If a parent wrapper still draws a "pill" border, kill ONLY its border/shadow */
-section[data-testid="stSidebar"] div[data-testid="stElementContainer"]{
-  box-shadow: none !important;
-}
-
-/* =========================
-   TYPOGRAPHY / HIERARCHY
-   ========================= */
+/* typography */
 .sb-app-title{
   font-size: 1.35rem;
   font-weight: 850;
@@ -137,9 +98,7 @@ section[data-testid="stSidebar"] div[data-testid="stElementContainer"]{
   margin: 0 0 .85rem 0;
 }
 
-/* =========================
-   SOLID SECTION LOOK
-   ========================= */
+/* section look */
 .sb-card{
   border: 1.5px solid var(--border);
   background: var(--card-bg) !important;
@@ -164,7 +123,7 @@ section[data-testid="stSidebar"] div[data-testid="stElementContainer"]{
   margin: 10px 2px;
 }
 
-/* File uploader dropzone */
+/* uploader dropzone */
 section[data-testid="stSidebar"] div[data-testid="stFileUploaderDropzone"]{
   background: var(--card-bg) !important;
   border: 1.5px solid var(--border) !important;
@@ -184,6 +143,48 @@ div[data-testid="column"] > div:first-child{
 </style>
 """,
     unsafe_allow_html=True
+)
+
+# ✅ HARD FIX: remove the “pill” shapes (ghost sidebar inputs) by deleting their containers
+components.html(
+    """
+<script>
+(function(){
+  function killGhostPills(){
+    const sidebar = window.parent.document.querySelector('section[data-testid="stSidebar"]');
+    if(!sidebar) return;
+
+    // These ghost pills are typically text/search inputs injected by Streamlit UI
+    const targets = sidebar.querySelectorAll(
+      'div[data-testid="stTextInput"], input[type="text"], input[type="search"]'
+    );
+
+    targets.forEach(node => {
+      // climb to the nearest element container and remove it
+      const container = node.closest('div[data-testid="stElementContainer"]') || node.parentElement;
+      if(container){
+        container.style.display = 'none';
+        container.style.height = '0px';
+        container.style.margin = '0';
+        container.style.padding = '0';
+        container.style.border = '0';
+      }
+    });
+  }
+
+  // run now + a few retries because Streamlit re-renders
+  killGhostPills();
+  let tries = 0;
+  const iv = setInterval(() => {
+    killGhostPills();
+    tries += 1;
+    if(tries >= 20) clearInterval(iv); // ~2 seconds
+  }, 100);
+})();
+</script>
+""",
+    height=0,
+    width=0,
 )
 
 if Path(BANNER).exists():
@@ -319,7 +320,6 @@ def on_upload_change():
 
 # -------------------- Sidebar UI --------------------
 with st.sidebar:
-    # Logo
     if Path(APP_LOGO).exists():
         b64 = base64.b64encode(Path(APP_LOGO).read_bytes()).decode()
         ext = Path(APP_LOGO).suffix.lstrip(".").lower() or "png"
@@ -343,12 +343,7 @@ with st.sidebar:
     st.markdown('<div class="sb-card">', unsafe_allow_html=True)
     st.markdown('<div class="sb-sec-title">Upload Photo</div>', unsafe_allow_html=True)
     st.markdown('<div class="sb-sec-sub">Drop a JPG/PNG here, or browse</div>', unsafe_allow_html=True)
-    st.file_uploader(
-        label="",
-        type=["jpg", "jpeg", "png"],
-        key="uploader",
-        on_change=on_upload_change,
-    )
+    st.file_uploader("", type=["jpg", "jpeg", "png"], key="uploader", on_change=on_upload_change)
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="sb-mini-sep"></div>', unsafe_allow_html=True)
