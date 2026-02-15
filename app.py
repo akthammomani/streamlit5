@@ -39,8 +39,9 @@ st.set_page_config(
 )
 
 # -------------------- CSS --------------------
-# Goal: remove ONLY the "isolated rounded borders" without changing your layout.
-# Those borders are typically Streamlit empty element containers + sidebar header area.
+# Change ONLY what you asked:
+# - keep layout as-is (no pulling everything to the very top)
+# - remove the isolated rounded borders (they are the sidebar "ghost" text inputs)
 st.markdown(
     """
 <style>
@@ -48,13 +49,14 @@ st.markdown(
    SIDEBAR: wider + gray bg
    ========================= */
 :root{
-  --sb-w: 420px;             /* tweak: 400 / 420 / 460 */
-  --sb-bg: #F3F4F6;          /* solid gray */
-  --card-bg: #F3F4F6;        /* keep cards same gray (solid look) */
+  --sb-w: 420px;
+  --sb-bg: #F3F4F6;
+  --card-bg: #F3F4F6;
   --border: #E5E7EB;
   --text: #111827;
   --muted: #6B7280;
 }
+
 section[data-testid="stSidebar"]{
   width: var(--sb-w) !important;
   min-width: var(--sb-w) !important;
@@ -65,46 +67,45 @@ section[data-testid="stSidebar"] > div{
   background: var(--sb-bg) !important;
 }
 
-/* Best-effort: prevent collapsing by removing the UI control */
-button[data-testid="collapsedControl"]{ display:none !important; }
-section[data-testid="stSidebar"] div[data-testid="stSidebarNav"]{ display:none; }
-
-/* Keep sidebar background solid (avoid random white blocks) */
-section[data-testid="stSidebar"] [data-testid="stVerticalBlock"],
-section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div,
+/* Keep the normal top spacing in sidebar (DON'T pull everything up) */
 section[data-testid="stSidebar"] .block-container{
+  padding-top: 1rem !important;   /* keeps it looking natural */
   background: var(--sb-bg) !important;
 }
 
+/* Best-effort: prevent collapsing by hiding the collapse control */
+button[data-testid="collapsedControl"]{ display:none !important; }
+section[data-testid="stSidebar"] div[data-testid="stSidebarNav"]{ display:none; }
+
 /* =========================
-   REMOVE THE ISOLATED ROUNDED "BARS"
+   REMOVE THE ISOLATED ROUNDED BORDERS
    =========================
-   In your screenshot, these are not your cards.
-   They come from Streamlit's sidebar header + empty element containers.
+   These "pills" are Streamlit sidebar ghost text inputs.
+   Instead of display:none (which leaves weird shells on some builds),
+   we collapse them to zero height + zero border.
 */
-
-/* 1) Hide the sidebar header region that often renders those "pill" bars */
-section[data-testid="stSidebar"] [data-testid="stSidebarHeader"]{
-  display:none !important;
+section[data-testid="stSidebar"] div[data-testid="stTextInput"]{
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
 }
-
-/* 2) Hide truly empty element containers (the ghost rounded boxes) */
-section[data-testid="stSidebar"] div[data-testid="stElementContainer"]:empty{
-  display:none !important;
+section[data-testid="stSidebar"] div[data-testid="stTextInput"] *{
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
 }
-
-/* 3) Defensive: if they are "empty-ish" (only spacing), kill border/background/shadow */
-section[data-testid="stSidebar"] div[data-testid="stElementContainer"]{
-  box-shadow: none !important;
-  background: transparent !important;
-  border: none !important;
-}
-
-/* 4) Also hide any text/search inputs in sidebar (some builds use that for the header) */
-section[data-testid="stSidebar"] div[data-testid="stTextInput"],
 section[data-testid="stSidebar"] input[type="text"],
 section[data-testid="stSidebar"] input[type="search"]{
-  display:none !important;
+  display: none !important;
+}
+
+/* If a parent wrapper still draws a "pill" border, kill ONLY its border/shadow */
+section[data-testid="stSidebar"] div[data-testid="stElementContainer"]{
+  box-shadow: none !important;
 }
 
 /* =========================
@@ -163,16 +164,12 @@ section[data-testid="stSidebar"] input[type="search"]{
   margin: 10px 2px;
 }
 
-/* File uploader dropzone should match the same gray */
+/* File uploader dropzone */
 section[data-testid="stSidebar"] div[data-testid="stFileUploaderDropzone"]{
   background: var(--card-bg) !important;
   border: 1.5px solid var(--border) !important;
   border-radius: 12px !important;
 }
-
-/* Tighten sidebar spacing */
-section[data-testid="stSidebar"] .block-container{ padding-top: .6rem; }
-section[data-testid="stSidebar"] [data-testid="stVerticalBlock"]{ gap: .65rem; }
 
 /* Buttons */
 section[data-testid="stSidebar"] .stButton button{
@@ -337,15 +334,12 @@ with st.sidebar:
     else:
         st.markdown('<div style="text-align:center;font-size:52px">🍎</div>', unsafe_allow_html=True)
 
-    # Title + thick separator
     st.markdown('<div class="sb-app-title">AI-Powered Apple Leaf Specialist</div>', unsafe_allow_html=True)
     st.markdown('<div class="sb-divider"></div>', unsafe_allow_html=True)
 
-    # Section header
     st.markdown('<div class="sb-h1">Add a leaf photo</div>', unsafe_allow_html=True)
     st.markdown('<div class="sb-sub">Upload a file or take a photo using your camera.</div>', unsafe_allow_html=True)
 
-    # Upload card
     st.markdown('<div class="sb-card">', unsafe_allow_html=True)
     st.markdown('<div class="sb-sec-title">Upload Photo</div>', unsafe_allow_html=True)
     st.markdown('<div class="sb-sec-sub">Drop a JPG/PNG here, or browse</div>', unsafe_allow_html=True)
@@ -357,10 +351,8 @@ with st.sidebar:
     )
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Small separator inside section
     st.markdown('<div class="sb-mini-sep"></div>', unsafe_allow_html=True)
 
-    # Record card
     st.markdown('<div class="sb-card">', unsafe_allow_html=True)
     st.markdown('<div class="sb-sec-title">Record Photo</div>', unsafe_allow_html=True)
     st.markdown('<div class="sb-sec-sub">Use your device camera</div>', unsafe_allow_html=True)
@@ -402,7 +394,6 @@ file = st.session_state.captured if st.session_state.source == "camera" else (
 if file:
     pil = load_pil(file)
 
-    # Quality gates
     b = compute_brightness(pil)
     if b < dark_thr:
         st.warning(f"Image appears too dark (brightness {b:.2f}). Retake under brighter, even lighting.")
@@ -421,12 +412,10 @@ if file:
             )
             st.stop()
 
-    # Inference
     probs = predict_probs(pil)
     pred_label, pred_conf, _ = decide(probs, labels, THRESHOLD)
     prob_map = {lab: float(probs[i]) for i, lab in enumerate(labels)}
 
-    # -------- Row 1: image + prediction --------
     r1_left, med, r1_right = st.columns([0.5, 0.5, 1], gap="large")
     with r1_left:
         st.markdown("### Your Image:")
@@ -443,7 +432,6 @@ if file:
         st.write("#### Learn More")
         st.markdown("[![](https://img.shields.io/badge/GitHub%20-Calibrated%20ResNet-18%20Model-informational)](https://github.com/akthammomani/ai_powered_apple_leaf_specialist/blob/main/Notebooks/Modeling_AI_Powered_Apple_Leaf_Specialist.ipynb)")
 
-    # -------- Care poster --------
     st.markdown(f"### Apple – {_pretty(pred_label)} Care Recommendations:")
     poster_path = CARE_POSTERS.get(pred_label, CARE_POSTERS["healthy"])
     if not Path(poster_path).exists():
