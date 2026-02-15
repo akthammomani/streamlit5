@@ -426,7 +426,7 @@ with st.sidebar:
     [![](https://img.shields.io/badge/GitHub-Follow-informational)](https://github.com/akthammomani)
     [![](https://img.shields.io/badge/Linkedin-Connect-informational)](https://www.linkedin.com/in/akthammomani/)
     [![](https://img.shields.io/badge/Open-Issue-informational)](https://github.com/akthammomani/ai_powered_apple_leaf_specialist/issues)
-    [![MAIL Badge](https://img.shields.io/badge/-aktham.momani81@gmail.com-c14438?style=flat-square&logo=Gmail&logoColor=white&link=mailto:aktham.momani81@gmail.com)](mailto:aktham.momani81@gmail.com)
+    [![](https://img.shields.io/badge/Email-Contact-informational)](mailto:aktham.momani81@gmail.com)
     ###### © Aktham Momani, 2025. All rights reserved.
     """)
 
