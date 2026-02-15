@@ -39,11 +39,8 @@ st.set_page_config(
 )
 
 # -------------------- CSS --------------------
-# Notes:
-# - Streamlit does NOT provide a true "uncollapsible sidebar" API.
-#   We do best-effort: keep it expanded + hide the collapse control.
-# - The “attached shapes” are usually Streamlit empty widgets (often st.text_input/search)
-#   rendered as rounded boxes. We hide common ones inside the sidebar.
+# Goal: remove ONLY the "isolated rounded borders" without changing your layout.
+# Those borders are typically Streamlit empty element containers + sidebar header area.
 st.markdown(
     """
 <style>
@@ -80,14 +77,31 @@ section[data-testid="stSidebar"] .block-container{
 }
 
 /* =========================
-   REMOVE "ATTACHED SHAPES"
-   ========================= */
-/* These are commonly: empty st.text_input / search input rendered as rounded boxes.
-   Hide the entire widget container when it's a text input inside the sidebar. */
-section[data-testid="stSidebar"] div[data-testid="stTextInput"]{
+   REMOVE THE ISOLATED ROUNDED "BARS"
+   =========================
+   In your screenshot, these are not your cards.
+   They come from Streamlit's sidebar header + empty element containers.
+*/
+
+/* 1) Hide the sidebar header region that often renders those "pill" bars */
+section[data-testid="stSidebar"] [data-testid="stSidebarHeader"]{
   display:none !important;
 }
-/* Also hide any stray empty input-like boxes (defensive) */
+
+/* 2) Hide truly empty element containers (the ghost rounded boxes) */
+section[data-testid="stSidebar"] div[data-testid="stElementContainer"]:empty{
+  display:none !important;
+}
+
+/* 3) Defensive: if they are "empty-ish" (only spacing), kill border/background/shadow */
+section[data-testid="stSidebar"] div[data-testid="stElementContainer"]{
+  box-shadow: none !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+/* 4) Also hide any text/search inputs in sidebar (some builds use that for the header) */
+section[data-testid="stSidebar"] div[data-testid="stTextInput"],
 section[data-testid="stSidebar"] input[type="text"],
 section[data-testid="stSidebar"] input[type="search"]{
   display:none !important;
@@ -174,33 +188,6 @@ div[data-testid="column"] > div:first-child{
 """,
     unsafe_allow_html=True
 )
-
-st.markdown(
-"""
-<style>
-/* ✅ Remove ONLY the isolated rounded empty “bars” in the sidebar */
-section[data-testid="stSidebar"] div[data-testid="stElementContainer"]:empty{
-  display: none !important;
-}
-
-/* ✅ Some Streamlit builds don’t leave it truly empty; they contain only whitespace/BR.
-   Hide containers that have no visible children (common in these ghost bars). */
-section[data-testid="stSidebar"] div[data-testid="stElementContainer"] > div:empty{
-  display:none !important;
-}
-section[data-testid="stSidebar"] div[data-testid="stElementContainer"] > div > div:empty{
-  display:none !important;
-}
-
-/* ✅ Defensive: if the ghost bar is a bordered container with no widgets, kill its border/background */
-section[data-testid="stSidebar"] div[data-testid="stElementContainer"]{
-  box-shadow: none !important;
-}
-</style>
-""",
-unsafe_allow_html=True
-)
-
 
 if Path(BANNER).exists():
     st.image(BANNER, use_container_width=True)
