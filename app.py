@@ -39,31 +39,58 @@ st.set_page_config(
 )
 
 # -------------------- CSS --------------------
+# Notes:
+# - Streamlit does NOT provide a true "uncollapsible sidebar" API.
+#   We do best-effort: keep it expanded + hide the collapse control.
+# - The “attached shapes” are usually Streamlit empty widgets (often st.text_input/search)
+#   rendered as rounded boxes. We hide common ones inside the sidebar.
 st.markdown(
     """
 <style>
 /* =========================
-   SIDEBAR WIDTH (wider)
+   SIDEBAR: wider + gray bg
    ========================= */
 :root{
-  --sb-w: 420px;              /* adjust: 380 / 420 / 460 */
+  --sb-w: 420px;             /* tweak: 400 / 420 / 460 */
+  --sb-bg: #F3F4F6;          /* solid gray */
+  --card-bg: #F3F4F6;        /* keep cards same gray (solid look) */
+  --border: #E5E7EB;
+  --text: #111827;
+  --muted: #6B7280;
 }
 section[data-testid="stSidebar"]{
   width: var(--sb-w) !important;
   min-width: var(--sb-w) !important;
-  background: #ffffff !important;     /* unified background */
+  background: var(--sb-bg) !important;
 }
 section[data-testid="stSidebar"] > div{
   width: var(--sb-w) !important;
+  background: var(--sb-bg) !important;
 }
 
-/* Keep sidebar expanded + hide collapse controls (best-effort; Streamlit doesn't offer true "uncollapsible") */
+/* Best-effort: prevent collapsing by removing the UI control */
 button[data-testid="collapsedControl"]{ display:none !important; }
 section[data-testid="stSidebar"] div[data-testid="stSidebarNav"]{ display:none; }
 
-/* Make all sidebar internals transparent so the sidebar bg wins */
-section[data-testid="stSidebar"] *{
-  background-color: transparent;
+/* Keep sidebar background solid (avoid random white blocks) */
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"],
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div,
+section[data-testid="stSidebar"] .block-container{
+  background: var(--sb-bg) !important;
+}
+
+/* =========================
+   REMOVE "ATTACHED SHAPES"
+   ========================= */
+/* These are commonly: empty st.text_input / search input rendered as rounded boxes.
+   Hide the entire widget container when it's a text input inside the sidebar. */
+section[data-testid="stSidebar"] div[data-testid="stTextInput"]{
+  display:none !important;
+}
+/* Also hide any stray empty input-like boxes (defensive) */
+section[data-testid="stSidebar"] input[type="text"],
+section[data-testid="stSidebar"] input[type="search"]{
+  display:none !important;
 }
 
 /* =========================
@@ -71,36 +98,36 @@ section[data-testid="stSidebar"] *{
    ========================= */
 .sb-app-title{
   font-size: 1.35rem;
-  font-weight: 800;
-  color: #111827;
+  font-weight: 850;
+  color: var(--text);
   line-height: 1.2;
   text-align: center;
   margin: .35rem 0 .55rem 0;
 }
 .sb-divider{
   height: 3px;
-  background: #E5E7EB;
+  background: #D1D5DB;
   border-radius: 999px;
   margin: .4rem 0 1rem 0;
 }
 .sb-h1{
   font-size: 1.05rem;
   font-weight: 800;
-  color: #111827;
+  color: var(--text);
   margin: 0 0 .35rem 0;
 }
 .sb-sub{
   font-size: .86rem;
-  color: #6b7280;
+  color: var(--muted);
   margin: 0 0 .85rem 0;
 }
 
 /* =========================
-   WHITE CARDS (same background everywhere)
+   SOLID SECTION LOOK
    ========================= */
 .sb-card{
-  border: 1.5px solid #E6E9EF;
-  background: #ffffff !important;
+  border: 1.5px solid var(--border);
+  background: var(--card-bg) !important;
   border-radius: 12px;
   padding: 12px;
   margin-bottom: 10px;
@@ -108,34 +135,25 @@ section[data-testid="stSidebar"] *{
 .sb-sec-title{
   font-size: .95rem;
   font-weight: 750;
-  color: #111827;
+  color: var(--text);
   margin: 0 0 2px 0;
 }
 .sb-sec-sub{
   font-size: .82rem;
-  color: #6b7280;
+  color: var(--muted);
   margin: 0 0 10px 0;
 }
-
-/* Small separator between Upload / Record */
 .sb-mini-sep{
   height: 1px;
-  background: #EEF2F7;
+  background: #E5E7EB;
   margin: 10px 2px;
 }
 
-/* File uploader dropzone must be white too */
+/* File uploader dropzone should match the same gray */
 section[data-testid="stSidebar"] div[data-testid="stFileUploaderDropzone"]{
-  background: #ffffff !important;
-  border: 1.5px solid #E6E9EF !important;
+  background: var(--card-bg) !important;
+  border: 1.5px solid var(--border) !important;
   border-radius: 12px !important;
-}
-
-/* Remove leftover gray wrappers */
-section[data-testid="stSidebar"] div[data-testid="stFileUploader"],
-section[data-testid="stSidebar"] div[data-testid="stFileUploader"] section,
-section[data-testid="stSidebar"] div[data-testid="stFileUploader"] section > div{
-  background: transparent !important;
 }
 
 /* Tighten sidebar spacing */
@@ -147,8 +165,8 @@ section[data-testid="stSidebar"] .stButton button{
   border-radius: 8px !important;
 }
 
-/* Main area info spacing */
-div[data-testid="column"] > div:first-child {
+/* Main area column cleanup */
+div[data-testid="column"] > div:first-child{
   margin-top: 0 !important;
   padding-top: 0 !important;
 }
@@ -288,7 +306,7 @@ def on_upload_change():
     st.session_state.source = "upload"
     st.session_state.show_camera = False
 
-# -------------------- Sidebar UI (inputs moved here) --------------------
+# -------------------- Sidebar UI --------------------
 with st.sidebar:
     # Logo
     if Path(APP_LOGO).exists():
