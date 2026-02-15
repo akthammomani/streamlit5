@@ -8,8 +8,6 @@ from PIL import Image, ImageOps
 import streamlit as st
 import torch
 import torchvision.transforms as T
-import streamlit.components.v1 as components
-from streamlit_javascript import st_javascript
 
 # -------------------- Paths --------------------
 ART = Path("Data_Directory/artifacts")
@@ -21,176 +19,82 @@ TEMP_PATH = ART / "temperature.json"
 BANNER   = "header_banner.jpg"
 APP_LOGO = "logo 2.jpg"
 
-# -------------------- Page + light styling --------------------
+# -------------------- Defaults (Settings are now fixed) --------------------
+THRESHOLD     = 0.85
+dark_thr      = 0.25
+bright_thr    = 0.90
+PREVIEW_MAX_W = 420
+PREVIEW_MAX_H = 420
+
+# Camera leaf-gate defaults (you referenced these later; keep them defined)
+cov_min = 0.04
+tex_min = 25.0
+
+# -------------------- Page config (force sidebar open) --------------------
 st.set_page_config(
     page_title="AI-Powered Apple Leaf Specialist",
     page_icon=APP_LOGO if Path(APP_LOGO).exists() else "🍎",
     layout="wide",
+    initial_sidebar_state="expanded",
 )
 
-# Card‑like look for uploader and camera
-st.markdown("""
+# -------------------- CSS --------------------
+st.markdown(
+    """
 <style>
-/* ===========================
-   GLOBAL COLUMN CLEANUP
-   =========================== */
-div[data-testid="column"] > div:first-child {
-  margin-top: 0 !important;
-  padding-top: 0 !important;
+/* Keep sidebar expanded + hide collapse controls (best-effort; Streamlit doesn't offer a true "uncollapsible" API) */
+button[kind="headerNoPadding"],
+button[data-testid="collapsedControl"] { display:none !important; }
+div[data-testid="stSidebarNav"] { display:none; }
+
+/* Sidebar section titles */
+.sb-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111827;
+  margin: .2rem 0 .4rem 0;
 }
-
-.leaf-left { }
-.leaf-right { }
-
-.leaf-block {
-  display: block;
-  margin: 0;
-  padding: 0;
-}
-
-/* ===========================
-   TITLES / SUBTITLES
-   =========================== */
-.title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-  line-height: 1.4;
-}
-
-.sub {
-  font-size: 0.875rem;
-  font-weight: 400;
+.sb-sub {
+  font-size: .85rem;
   color: #6b7280;
-  margin: 0;
-  line-height: 1.4;
+  margin: 0 0 .75rem 0;
 }
 
-.block-head { margin-bottom: 8px; }
-
-/* ===========================
-   RIGHT SPACER (ALIGNMENT)
-   =========================== */
-.right-spacer { height: 45px; width: 100%; }
-@media (max-width: 680px) { .right-spacer { height: 16px; } }
-
-/* ===========================
-   UPLOADER CARD (LEFT)
-   =========================== */
-.leaf-left div[data-testid="stFileUploader"] { margin-top: 0 !important; }
-
-.upload-wrapper,
-.upload-wrapper > div[data-testid="stFileUploader"],
-.upload-wrapper section[data-testid="stFileUploaderDropzone"] {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"] {
+/* Card look for uploader/camera inside sidebar */
+.sb-card {
   border: 1.5px solid #E6E9EF;
   background: #F6F8FB;
   border-radius: 12px;
   padding: 12px;
+  margin-bottom: 12px;
+}
+.sb-card .title {
+  font-size: .95rem;
+  font-weight: 650;
+  color: #1f2937;
+  margin: 0 0 2px 0;
+  line-height: 1.2;
+}
+.sb-card .sub {
+  font-size: .82rem;
+  color: #6b7280;
+  margin: 0 0 10px 0;
+  line-height: 1.2;
 }
 
-/* ===========================
-   CAMERA CARD (RIGHT) – Scoped via anchor
-   =========================== */
-
-/* Hint text */
-.cam-hint {
-  font-size: 0.875rem;
-  line-height: 1.4;
-  color: #6b7280 !important;
-  margin: 0 !important;
-}
-
-/* Target ONLY the container right after the anchor */
-#cam-card-anchor + div[data-testid="stContainer"] {
-  border-radius: 12px !important;
-}
-
-/* Border color consistency */
-#cam-card-anchor + div[data-testid="stContainer"] > div {
+/* Make sidebar file uploader dropzone match the card */
+div[data-testid="stSidebar"] div[data-testid="stFileUploader"] section[data-testid="stFileUploaderDropzone"]{
   border: 1.5px solid #E6E9EF !important;
-  border-radius: 12px !important;
-}
-
-/* ✅ Force gray background INSIDE that container (all likely wrapper levels) */
-#cam-card-anchor + div[data-testid="stContainer"],
-#cam-card-anchor + div[data-testid="stContainer"] > div,
-#cam-card-anchor + div[data-testid="stContainer"] > div > div,
-#cam-card-anchor + div[data-testid="stContainer"] > div > div > div,
-#cam-card-anchor + div[data-testid="stContainer"] section,
-#cam-card-anchor + div[data-testid="stContainer"] section > div,
-#cam-card-anchor + div[data-testid="stContainer"] section > div > div {
   background: #F6F8FB !important;
-}
-
-/* Padding on the inner content wrapper */
-#cam-card-anchor + div[data-testid="stContainer"] > div > div {
-  padding: 16px 12px !important;
-  box-sizing: border-box !important;
   border-radius: 12px !important;
 }
 
-/* Button alignment top-right */
-#cam-card-anchor + div[data-testid="stContainer"] div[data-testid="stButton"] {
-  display: flex !important;
-  justify-content: flex-end !important;
-  align-items: flex-start !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  background: transparent !important;
-}
-
-/* Button styling */
-#cam-card-anchor + div[data-testid="stContainer"] div[data-testid="stButton"] button {
-  background: #ffffff !important;
-  color: #111827 !important;
-  font-size: 0.875rem !important;
-  line-height: 1.2 !important;
-
-  border: 1px solid #D1D5DB !important;
-  border-radius: 8px !important;
-  padding: .45rem .8rem !important;
-
-  min-width: 120px !important;
-  white-space: nowrap !important;
-  box-shadow: none !important;
-}
-
-#cam-card-anchor + div[data-testid="stContainer"] div[data-testid="stButton"] button:hover {
-  border-color: #9CA3AF !important;
-}
-
-/* ===========================
-   RESPONSIVE
-   =========================== */
-@media (max-width: 680px) {
-  #cam-card-anchor + div[data-testid="stContainer"] > div > div {
-    padding: 14px 12px !important;
-  }
-
-  #cam-card-anchor + div[data-testid="stContainer"] div[data-testid="stButton"] {
-    justify-content: flex-start !important;
-    margin-top: .5rem !important;
-  }
-
-  #cam-card-anchor + div[data-testid="stContainer"] div[data-testid="stButton"] button {
-    min-width: 0 !important;
-  }
-}
+/* Slightly tighten sidebar spacing */
+div[data-testid="stSidebar"] .stButton button { border-radius: 8px !important; }
 </style>
-
-""", unsafe_allow_html=True)
-
-
-
-
-
-
+""",
+    unsafe_allow_html=True
+)
 
 if Path(BANNER).exists():
     st.image(BANNER, use_container_width=True)
@@ -278,15 +182,8 @@ def decide(probs: np.ndarray, labels, threshold: float):
     k = int(np.argmax(probs)); p = float(probs[k])
     return (labels[k], p, k) if p >= threshold else ("unknown", p, k)
 
-# ---- UI helpers ----
 def _pretty(lab: str) -> str:
     return lab.replace("_", " ").title()
-
-def vspace(rows: int = 2, row_px: int = 12):
-    st.markdown(f"<div style='height:{rows*row_px}px'></div>", unsafe_allow_html=True)
-
-def preview_image(img: Image.Image, max_w: int, max_h: int) -> Image.Image:
-    return ImageOps.contain(img, (max_w, max_h))  # preserve aspect ratio
 
 def render_prob_bars_native(prob_map: dict):
     st.markdown("**Apple Disease Probability**")
@@ -328,21 +225,16 @@ def on_upload_change():
     st.session_state.source = "upload"
     st.session_state.show_camera = False
 
-# -------------------- Sidebar --------------------
+# -------------------- Sidebar helpers --------------------
 def sidebar_logo(title: str, path: str):
     if Path(path).exists():
         b64 = base64.b64encode(Path(path).read_bytes()).decode()
         ext = Path(path).suffix.lstrip(".").lower() or "png"
-
-        # 👇 control the displayed size here
-        # pick the width you want (e.g. 120px, 100px, 80px...)
         img_html = (
             f'<img src="data:image/{ext};base64,{b64}" '
-            f'style="max-width:110px; height:auto; display:block;" '
-            f'alt="logo" />'
+            f'style="max-width:110px; height:auto; display:block;" alt="logo" />'
         )
     else:
-        # fallback emoji size can be smaller too if you like
         img_html = '<div style="font-size:48px">🍎</div>'
 
     st.markdown(
@@ -369,20 +261,50 @@ def sidebar_logo(title: str, path: str):
         unsafe_allow_html=True
     )
 
-
+# -------------------- Sidebar: inputs moved here (stacked) --------------------
 with st.sidebar:
-    sidebar_logo("AI‑Powered Apple Leaf Specialist", APP_LOGO)
-    st.subheader("Settings")
-    THRESHOLD = st.slider("Decision threshold (τ)", 0.0, 0.99, 0.85, 0.01)
-    dark_thr   = st.slider("Too dark threshold", 0.05, 0.50, 0.25, 0.01)
-    bright_thr = st.slider("Too bright threshold", 0.50, 0.99, 0.90, 0.01)
-    #cov_min = st.slider("Min green coverage (camera gate)", 0.00, 0.50, 0.04, 0.01)
-    #tex_min = st.slider("Min texture score (camera gate)", 0.0, 300.0, 25.0, 1.0)
-    PREVIEW_MAX_W = st.slider("Image preview max width (px)", 280, 1000, 420, 10)
-    PREVIEW_MAX_H = st.slider("Image preview max height (px)", 200, 900, 420, 10)
-    #st.checkbox("Keep camera open after capture", value=st.session_state.keep_camera_on, key="keep_camera_on")
-    #st.caption(f"Engine: TorchScript · Temperature: {TEMPERATURE:.2f} · Image size: {IMG_SIZE}")
-    #st.write("---")
+    sidebar_logo("AI-Powered Apple Leaf Specialist", APP_LOGO)
+
+    st.markdown('<div class="sb-title">Add a leaf photo</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-sub">Upload a file or take a photo using your camera.</div>', unsafe_allow_html=True)
+
+    # Upload block
+    st.markdown('<div class="sb-card">', unsafe_allow_html=True)
+    st.markdown('<div class="title">Upload Photo</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub">Drop a JPG/PNG here, or browse</div>', unsafe_allow_html=True)
+    st.file_uploader(
+        label="",
+        type=["jpg", "jpeg", "png"],
+        key="uploader",
+        on_change=on_upload_change,
+    )
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # Camera block
+    st.markdown('<div class="sb-card">', unsafe_allow_html=True)
+    st.markdown('<div class="title">Record Photo</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub">Use your device camera</div>', unsafe_allow_html=True)
+
+    if not st.session_state.show_camera:
+        c_hint, c_btn = st.columns([6, 4], vertical_alignment="center")
+        with c_hint:
+            st.caption('Tap "Open camera" to take a photo.')
+        with c_btn:
+            if st.button("Open camera", key="open_cam_btn"):
+                open_camera()
+    else:
+        cap = st.camera_input("", key="camera_input")
+        if cap is not None:
+            st.session_state.captured = cap
+            st.session_state.source = "camera"
+            if not st.session_state.keep_camera_on:
+                st.session_state.show_camera = False
+
+        st.button("Close camera", on_click=close_camera, key="close_cam_btn")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.write("---")
     st.write("""
     ### Contacts
     [![](https://img.shields.io/badge/GitHub-Follow-informational)](https://github.com/akthammomani)
@@ -391,65 +313,8 @@ with st.sidebar:
     [![MAIL Badge](https://img.shields.io/badge/-aktham.momani81@gmail.com-c14438?style=flat-square&logo=Gmail&logoColor=white&link=mailto:aktham.momani81@gmail.com)](mailto:aktham.momani81@gmail.com)
     ###### © Aktham Momani, 2025. All rights reserved.
     """)
-    #st.markdown("**Classes**: " + " · ".join(labels))
 
-# -------------------- Inputs --------------------
-st.subheader("Add a leaf photo")
-left, right = st.columns([1,1], gap="large")
-
-with left:
-    st.markdown('<div class="upload-section">', unsafe_allow_html=True)
-    st.markdown('<div class="title">Upload Photo</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub">Drop a JPG/PNG here, or browse</div>', unsafe_allow_html=True)
-    st.markdown('<div class="upload-wrapper">', unsafe_allow_html=True)
-    st.file_uploader(label="", type=["jpg", "jpeg", "png"], key="uploader", on_change=on_upload_change)
-    st.markdown("</div></div>", unsafe_allow_html=True)
-
-
-
-with right:
-    st.markdown('<div class="leaf-right"><div class="leaf-block">', unsafe_allow_html=True)
-
-    # Header (stays where it is)
-    st.markdown('<div class="title">Record Photo</div>', unsafe_allow_html=True)
-    st.markdown(
-        '<div class="block-head">'
-        #'<div class="title">Record Photo</div>'
-        '<div class="sub">Use your device camera</div>'
-        '</div>',
-        unsafe_allow_html=True
-    )
-
-    # NEW: spacer to push the card down
-    if not st.session_state.show_camera:
-        st.markdown('<div id="cam-card-anchor"></div>', unsafe_allow_html=True)
-
-        with st.container(border=True):
-            c_hint, c_btn = st.columns([8, 2], vertical_alignment="top")
-            with c_hint:
-                st.markdown('<p class="cam-hint">Tap “Open camera” to take a photo.</p>', unsafe_allow_html=True)
-            with c_btn:
-                if st.button("Open camera", key="open_cam_btn"):
-                    open_camera()
-        cap = None
-    else:
-        # Camera open view
-        st.markdown('<div class="block-card">', unsafe_allow_html=True)
-
-        cap = st.camera_input("", key="camera_input")
-        if cap is not None:
-            st.session_state.captured = cap
-            st.session_state.source = "camera"
-            if not st.session_state.keep_camera_on:
-                st.session_state.show_camera = False
-
-        st.button("Close camera", on_click=lambda: setattr(st.session_state, "show_camera", False), key="close_cam_btn")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    st.markdown('</div></div>', unsafe_allow_html=True)  # close leaf-block + leaf-right
-
-
-# Active source
+# -------------------- Active source --------------------
 file = st.session_state.captured if st.session_state.source == "camera" else (
     st.session_state.upload if st.session_state.source == "upload" else None
 )
@@ -464,8 +329,9 @@ if file:
         st.warning(f"Image appears too dark (brightness {b:.2f}). Retake under brighter, even lighting.")
         st.stop()
     if b > bright_thr:
-        st.warning(f"Image appears too bright/washed‑out (brightness {b:.2f}). Retake avoiding direct glare.")
+        st.warning(f"Image appears too bright/washed-out (brightness {b:.2f}). Retake avoiding direct glare.")
         st.stop()
+
     if st.session_state.source == "camera":
         bypass_gate = st.checkbox("Bypass leaf check for this camera image", value=False)
         ok_leaf, cov, tex = is_leaf_like(pil, cov_min=cov_min, cov_max=0.98, tex_min=tex_min)
@@ -482,8 +348,7 @@ if file:
     prob_map = {lab: float(probs[i]) for i, lab in enumerate(labels)}
 
     # -------- Row 1: image + prediction --------
-    #r1_left, r1_right = st.columns([1,1], gap="large")
-    r1_left, med, r1_right = st.columns([0.5,0.5, 1], gap="large")
+    r1_left, med, r1_right = st.columns([0.5, 0.5, 1], gap="large")
     with r1_left:
         st.markdown("### Your Image:")
         st.image(ImageOps.contain(pil, (PREVIEW_MAX_W, PREVIEW_MAX_H)), use_container_width=False)
@@ -497,16 +362,10 @@ if file:
         st.markdown(f"**{_pretty(pred_label)}** with **{pred_conf*100:.0f}%** Confidence")
         render_prob_bars_native(prob_map)
         st.write("#### Learn More")
-        st.markdown("[![](https://img.shields.io/badge/GitHub%20-Calibrated%20ResNet‑18%20Model-informational)](https://github.com/akthammomani/ai_powered_apple_leaf_specialist/blob/main/Notebooks/Modeling_AI_Powered_Apple_Leaf_Specialist.ipynb)")
+        st.markdown("[![](https://img.shields.io/badge/GitHub%20-Calibrated%20ResNet-18%20Model-informational)](https://github.com/akthammomani/ai_powered_apple_leaf_specialist/blob/main/Notebooks/Modeling_AI_Powered_Apple_Leaf_Specialist.ipynb)")
 
-        #st.caption("Model: Calibrated ResNet‑18 (TorchScript). Low‑confidence predictions route to ‘unknown’.")
-    #vspace(3)
-
-    # -------- Row 2: Title --------
+    # -------- Care poster --------
     st.markdown(f"### Apple – {_pretty(pred_label)} Care Recommendations:")
-    vspace(2)
-
-    # -------- Row 3: Poster image --------
     poster_path = CARE_POSTERS.get(pred_label, CARE_POSTERS["healthy"])
     if not Path(poster_path).exists():
         st.info("Care poster not found. Please add the JPGs next to app.py.")
@@ -516,6 +375,5 @@ if file:
         ###### ***Disclaimer***
         *This app is not a substitute for professional agricultural advice, diagnosis, or treatment. Field conditions, pests, and diseases can vary widely. Always consult a qualified agronomist, crop advisor, or local extension service before making decisions that could affect tree health, spray plans, or harvest.*
         """)
-
 else:
-    st.info("Upload a photo or open the camera to begin.")
+    st.info("Use the sidebar to upload a photo or open the camera to begin.")
