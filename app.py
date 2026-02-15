@@ -6,7 +6,7 @@ import base64
 import numpy as np
 from PIL import Image, ImageOps
 import streamlit as st
-import streamlit.components.v1 as components   # ✅ ADDED
+import streamlit.components.v1 as components  # ✅ ADDED
 import torch
 import torchvision.transforms as T
 
@@ -67,7 +67,7 @@ section[data-testid="stSidebar"] .block-container{
   background: var(--sb-bg) !important;
 }
 
-/* best-effort: hide collapse control (Streamlit has no hard-lock API) */
+/* best-effort: hide collapse control */
 button[data-testid="collapsedControl"]{ display:none !important; }
 section[data-testid="stSidebar"] div[data-testid="stSidebarNav"]{ display:none; }
 
@@ -145,40 +145,77 @@ div[data-testid="column"] > div:first-child{
     unsafe_allow_html=True
 )
 
-# ✅ HARD FIX: remove the “pill” shapes (ghost sidebar inputs) by deleting their containers
+# ✅ STRONG FIX: remove the pill shapes by detecting them via computed style + MutationObserver
 components.html(
     """
 <script>
-(function(){
-  function killGhostPills(){
+(function () {
+  function isPill(el) {
+    if (!el || el.nodeType !== 1) return false;
+
+    const cs = window.getComputedStyle(el);
+    const rect = el.getBoundingClientRect();
+
+    // must look like a "rounded input"
+    const br = parseFloat(cs.borderRadius || "0");
+    const bw = parseFloat(cs.borderTopWidth || "0");
+    const bg = (cs.backgroundColor || "").replaceAll(" ", "");
+    const hasBorder = bw >= 1 && (cs.borderStyle || "").includes("solid");
+
+    // dimensions similar to your pills
+    const h = rect.height;
+    const w = rect.width;
+
+    const sizeLike = (h >= 26 && h <= 52) && (w >= 180);
+    const roundLike = br >= 12; // pill-ish
+
+    // usually empty / no meaningful text
+    const txt = (el.innerText || "").trim();
+    const emptyLike = txt.length === 0;
+
+    // typically white-ish background
+    const whiteish = bg.includes("255,255,255") || bg.includes("rgba(255,255,255");
+
+    return sizeLike && roundLike && hasBorder && (whiteish || emptyLike);
+  }
+
+  function hidePills() {
     const sidebar = window.parent.document.querySelector('section[data-testid="stSidebar"]');
-    if(!sidebar) return;
+    if (!sidebar) return;
 
-    // These ghost pills are typically text/search inputs injected by Streamlit UI
-    const targets = sidebar.querySelectorAll(
-      'div[data-testid="stTextInput"], input[type="text"], input[type="search"]'
-    );
+    const candidates = sidebar.querySelectorAll("div, section, label");
+    candidates.forEach(el => {
+      if (isPill(el)) {
+        const container =
+          el.closest('div[data-testid="stElementContainer"]') ||
+          el.closest('div[data-testid="stVerticalBlock"]') ||
+          el;
 
-    targets.forEach(node => {
-      // climb to the nearest element container and remove it
-      const container = node.closest('div[data-testid="stElementContainer"]') || node.parentElement;
-      if(container){
-        container.style.display = 'none';
-        container.style.height = '0px';
-        container.style.margin = '0';
-        container.style.padding = '0';
-        container.style.border = '0';
+        container.style.display = "none";
+        container.style.height = "0px";
+        container.style.margin = "0";
+        container.style.padding = "0";
+        container.style.border = "0";
+        container.style.boxShadow = "none";
       }
     });
   }
 
-  // run now + a few retries because Streamlit re-renders
-  killGhostPills();
+  // initial + observe rerenders
+  hidePills();
+
+  const sidebar = window.parent.document.querySelector('section[data-testid="stSidebar"]');
+  if (!sidebar) return;
+
+  const obs = new MutationObserver(() => hidePills());
+  obs.observe(sidebar, { childList: true, subtree: true });
+
+  // extra retries for delayed hydration
   let tries = 0;
   const iv = setInterval(() => {
-    killGhostPills();
-    tries += 1;
-    if(tries >= 20) clearInterval(iv); // ~2 seconds
+    hidePills();
+    tries++;
+    if (tries > 50) clearInterval(iv);
   }, 100);
 })();
 </script>
