@@ -44,7 +44,6 @@ st.set_page_config(
 #   We do best-effort: keep it expanded + hide the collapse control.
 # - The “attached shapes” are usually Streamlit empty widgets (often st.text_input/search)
 #   rendered as rounded boxes. We hide common ones inside the sidebar.
-# ✅ CHANGE 1: Replace ONLY your CSS block with this updated one
 st.markdown(
     """
 <style>
@@ -52,31 +51,43 @@ st.markdown(
    SIDEBAR: wider + gray bg
    ========================= */
 :root{
-  --sb-w: 420px;
-  --sb-bg: #F3F4F6;     /* sidebar gray */
+  --sb-w: 420px;             /* tweak: 400 / 420 / 460 */
+  --sb-bg: #F3F4F6;          /* solid gray */
+  --card-bg: #F3F4F6;        /* keep cards same gray (solid look) */
   --border: #E5E7EB;
   --text: #111827;
   --muted: #6B7280;
 }
-section[data-testid="stSidebar"],
-section[data-testid="stSidebar"] > div,
-section[data-testid="stSidebar"] .block-container,
-section[data-testid="stSidebar"] [data-testid="stVerticalBlock"],
-section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div{
+section[data-testid="stSidebar"]{
   width: var(--sb-w) !important;
   min-width: var(--sb-w) !important;
   background: var(--sb-bg) !important;
 }
+section[data-testid="stSidebar"] > div{
+  width: var(--sb-w) !important;
+  background: var(--sb-bg) !important;
+}
 
-/* Best-effort: keep expanded + hide collapse control */
+/* Best-effort: prevent collapsing by removing the UI control */
 button[data-testid="collapsedControl"]{ display:none !important; }
 section[data-testid="stSidebar"] div[data-testid="stSidebarNav"]{ display:none; }
 
+/* Keep sidebar background solid (avoid random white blocks) */
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"],
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div,
+section[data-testid="stSidebar"] .block-container{
+  background: var(--sb-bg) !important;
+}
+
 /* =========================
-   REMOVE THE TWO "EMPTY" ROUNDED BOXES
-   (these are empty text inputs)
+   REMOVE "ATTACHED SHAPES"
    ========================= */
-section[data-testid="stSidebar"] div[data-testid="stTextInput"],
+/* These are commonly: empty st.text_input / search input rendered as rounded boxes.
+   Hide the entire widget container when it's a text input inside the sidebar. */
+section[data-testid="stSidebar"] div[data-testid="stTextInput"]{
+  display:none !important;
+}
+/* Also hide any stray empty input-like boxes (defensive) */
 section[data-testid="stSidebar"] input[type="text"],
 section[data-testid="stSidebar"] input[type="search"]{
   display:none !important;
@@ -111,7 +122,16 @@ section[data-testid="stSidebar"] input[type="search"]{
   margin: 0 0 .85rem 0;
 }
 
-/* Section labels */
+/* =========================
+   SOLID SECTION LOOK
+   ========================= */
+.sb-card{
+  border: 1.5px solid var(--border);
+  background: var(--card-bg) !important;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
 .sb-sec-title{
   font-size: .95rem;
   font-weight: 750;
@@ -123,56 +143,37 @@ section[data-testid="stSidebar"] input[type="search"]{
   color: var(--muted);
   margin: 0 0 10px 0;
 }
-
-/* Small separator between Upload / Record (inside same section) */
 .sb-mini-sep{
   height: 1px;
   background: #E5E7EB;
   margin: 10px 2px;
 }
 
-/* =========================
-   REMOVE THE OUTER CARD BORDERS
-   (you said you don't want those two boxes)
-   ========================= */
-.sb-card{
-  border: 0 !important;
-  background: transparent !important;
-  border-radius: 0 !important;
-  padding: 0 !important;
-  margin: 0 0 10px 0 !important;
-}
-
-/* =========================
-   Make uploader dropzone GRAY (not white)
-   ========================= */
-section[data-testid="stSidebar"] div[data-testid="stFileUploaderDropzone"],
-section[data-testid="stSidebar"] div[data-testid="stFileUploaderDropzone"] *{
-  background: var(--sb-bg) !important; /* <-- gray */
-}
-
-/* keep uploader border subtle */
+/* File uploader dropzone should match the same gray */
 section[data-testid="stSidebar"] div[data-testid="stFileUploaderDropzone"]{
+  background: var(--card-bg) !important;
   border: 1.5px solid var(--border) !important;
   border-radius: 12px !important;
 }
 
-/* Ensure any uploader wrapper levels don't force white */
-section[data-testid="stSidebar"] div[data-testid="stFileUploader"],
-section[data-testid="stSidebar"] div[data-testid="stFileUploader"] section,
-section[data-testid="stSidebar"] div[data-testid="stFileUploader"] section > div{
-  background: transparent !important;
-}
+/* Tighten sidebar spacing */
+section[data-testid="stSidebar"] .block-container{ padding-top: .6rem; }
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"]{ gap: .65rem; }
 
 /* Buttons */
 section[data-testid="stSidebar"] .stButton button{
   border-radius: 8px !important;
 }
+
+/* Main area column cleanup */
+div[data-testid="column"] > div:first-child{
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
 </style>
 """,
     unsafe_allow_html=True
 )
-
 
 if Path(BANNER).exists():
     st.image(BANNER, use_container_width=True)
