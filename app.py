@@ -16,13 +16,13 @@ CFG_PATH  = ART / "config_inference.json"
 LAB_PATH  = ART / "labels.json"
 TEMP_PATH = ART / "temperature.json"
 
-BANNER    = "header_banner.jpg"
+BANNER   = "header_banner.jpg"
 APP_LOGO = "logo 2.jpg"
 
 # -------------------- Defaults (Settings are now fixed) --------------------
-THRESHOLD      = 0.85
-dark_thr       = 0.25
-bright_thr     = 0.90
+THRESHOLD     = 0.85
+dark_thr      = 0.25
+bright_thr    = 0.90
 PREVIEW_MAX_W = 420
 PREVIEW_MAX_H = 420
 
@@ -35,10 +35,13 @@ st.set_page_config(
     page_title="AI-Powered Apple Leaf Specialist",
     page_icon=APP_LOGO if Path(APP_LOGO).exists() else "🍎",
     layout="wide",
-    initial_sidebar_state="expanded", # Force it to be open on load
+    initial_sidebar_state="expanded",
 )
 
 # -------------------- CSS --------------------
+# Change ONLY what you asked:
+# - keep layout as-is (no pulling everything to the very top)
+# - remove the isolated rounded borders (they are the sidebar "ghost" text inputs)
 st.markdown(
     """
 <style>
@@ -59,25 +62,50 @@ section[data-testid="stSidebar"]{
   min-width: var(--sb-w) !important;
   background: var(--sb-bg) !important;
 }
-
-/* FIX SIDEBAR: Hide the collapse button */
-button[data-testid="collapsedControl"] {
-    display: none;
+section[data-testid="stSidebar"] > div{
+  width: var(--sb-w) !important;
+  background: var(--sb-bg) !important;
 }
 
-/* REMOVE THE "X" SHAPES: Hiding empty widget labels and ghost inputs */
-[data-testid="stSidebar"] [data-testid="stWidgetLabel"] {
-    display: none !important;
+/* Keep the normal top spacing in sidebar (DON'T pull everything up) */
+section[data-testid="stSidebar"] .block-container{
+  padding-top: 1rem !important;   /* keeps it looking natural */
+  background: var(--sb-bg) !important;
 }
 
+/* Best-effort: prevent collapsing by hiding the collapse control */
+button[data-testid="collapsedControl"]{ display:none !important; }
+section[data-testid="stSidebar"] div[data-testid="stSidebarNav"]{ display:none; }
+
+/* =========================
+   REMOVE THE ISOLATED ROUNDED BORDERS
+   =========================
+   These "pills" are Streamlit sidebar ghost text inputs.
+   Instead of display:none (which leaves weird shells on some builds),
+   we collapse them to zero height + zero border.
+*/
 section[data-testid="stSidebar"] div[data-testid="stTextInput"]{
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+}
+section[data-testid="stSidebar"] div[data-testid="stTextInput"] *{
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+}
+section[data-testid="stSidebar"] input[type="text"],
+section[data-testid="stSidebar"] input[type="search"]{
   display: none !important;
 }
 
-/* Cleanup sidebar spacing */
-section[data-testid="stSidebar"] .block-container{
-  padding-top: 2rem !important;
-  background: var(--sb-bg) !important;
+/* If a parent wrapper still draws a "pill" border, kill ONLY its border/shadow */
+section[data-testid="stSidebar"] div[data-testid="stElementContainer"]{
+  box-shadow: none !important;
 }
 
 /* =========================
@@ -146,6 +174,12 @@ section[data-testid="stSidebar"] div[data-testid="stFileUploaderDropzone"]{
 /* Buttons */
 section[data-testid="stSidebar"] .stButton button{
   border-radius: 8px !important;
+}
+
+/* Main area column cleanup */
+div[data-testid="column"] > div:first-child{
+  margin-top: 0 !important;
+  padding-top: 0 !important;
 }
 </style>
 """,
@@ -264,10 +298,10 @@ CARE_POSTERS = {
 }
 
 # -------------------- Session state --------------------
-if "show_camera" not in st.session_state:      st.session_state.show_camera = False
-if "source" not in st.session_state:          st.session_state.source = None
-if "captured" not in st.session_state:        st.session_state.captured = None
-if "upload" not in st.session_state:          st.session_state.upload = None
+if "show_camera" not in st.session_state:     st.session_state.show_camera = False
+if "source" not in st.session_state:         st.session_state.source = None
+if "captured" not in st.session_state:       st.session_state.captured = None
+if "upload" not in st.session_state:         st.session_state.upload = None
 if "keep_camera_on" not in st.session_state: st.session_state.keep_camera_on = False
 
 def open_camera():
@@ -310,8 +344,7 @@ with st.sidebar:
     st.markdown('<div class="sb-sec-title">Upload Photo</div>', unsafe_allow_html=True)
     st.markdown('<div class="sb-sec-sub">Drop a JPG/PNG here, or browse</div>', unsafe_allow_html=True)
     st.file_uploader(
-        label="uploader_hidden",
-        label_visibility="collapsed",
+        label="",
         type=["jpg", "jpeg", "png"],
         key="uploader",
         on_change=on_upload_change,
@@ -332,7 +365,7 @@ with st.sidebar:
             if st.button("Open camera", key="open_cam_btn"):
                 open_camera()
     else:
-        cap = st.camera_input("camera_hidden", label_visibility="collapsed", key="camera_input")
+        cap = st.camera_input("", key="camera_input")
         if cap is not None:
             st.session_state.captured = cap
             st.session_state.source = "camera"
@@ -360,7 +393,7 @@ file = st.session_state.captured if st.session_state.source == "camera" else (
 # -------------------- Main inference path --------------------
 if file:
     pil = load_pil(file)
-    # ... (Rest of your inference logic remains exactly the same)
+
     b = compute_brightness(pil)
     if b < dark_thr:
         st.warning(f"Image appears too dark (brightness {b:.2f}). Retake under brighter, even lighting.")
