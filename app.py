@@ -6,7 +6,7 @@ import base64
 import numpy as np
 from PIL import Image, ImageOps
 import streamlit as st
-import streamlit.components.v1 as components  # ✅ ADDED
+import streamlit.components.v1 as components
 import torch
 import torchvision.transforms as T
 
@@ -67,7 +67,7 @@ section[data-testid="stSidebar"] .block-container{
   background: var(--sb-bg) !important;
 }
 
-/* best-effort: hide collapse control */
+/* Hide the visible collapse button */
 button[data-testid="collapsedControl"]{ display:none !important; }
 section[data-testid="stSidebar"] div[data-testid="stSidebarNav"]{ display:none; }
 
@@ -145,44 +145,30 @@ div[data-testid="column"] > div:first-child{
     unsafe_allow_html=True
 )
 
-# ✅ STRONG FIX: remove the pill shapes by detecting them via computed style + MutationObserver
+# -------------------- JS: remove pills + force sidebar open --------------------
 components.html(
     """
 <script>
 (function () {
   function isPill(el) {
     if (!el || el.nodeType !== 1) return false;
-
     const cs = window.getComputedStyle(el);
     const rect = el.getBoundingClientRect();
-
-    // must look like a "rounded input"
     const br = parseFloat(cs.borderRadius || "0");
     const bw = parseFloat(cs.borderTopWidth || "0");
-    const bg = (cs.backgroundColor || "").replaceAll(" ", "");
     const hasBorder = bw >= 1 && (cs.borderStyle || "").includes("solid");
-
-    // dimensions similar to your pills
     const h = rect.height;
     const w = rect.width;
-
     const sizeLike = (h >= 26 && h <= 52) && (w >= 180);
-    const roundLike = br >= 12; // pill-ish
-
-    // usually empty / no meaningful text
+    const roundLike = br >= 12;
     const txt = (el.innerText || "").trim();
     const emptyLike = txt.length === 0;
-
-    // typically white-ish background
-    const whiteish = bg.includes("255,255,255") || bg.includes("rgba(255,255,255");
-
-    return sizeLike && roundLike && hasBorder && (whiteish || emptyLike);
+    return sizeLike && roundLike && hasBorder && emptyLike;
   }
 
   function hidePills() {
     const sidebar = window.parent.document.querySelector('section[data-testid="stSidebar"]');
     if (!sidebar) return;
-
     const candidates = sidebar.querySelectorAll("div, section, label");
     candidates.forEach(el => {
       if (isPill(el)) {
@@ -190,7 +176,6 @@ components.html(
           el.closest('div[data-testid="stElementContainer"]') ||
           el.closest('div[data-testid="stVerticalBlock"]') ||
           el;
-
         container.style.display = "none";
         container.style.height = "0px";
         container.style.margin = "0";
@@ -201,21 +186,49 @@ components.html(
     });
   }
 
-  // initial + observe rerenders
-  hidePills();
+  // --- Force sidebar to stay expanded ---
+  function forceSidebarOpen() {
+    const doc = window.parent.document;
 
-  const sidebar = window.parent.document.querySelector('section[data-testid="stSidebar"]');
-  if (!sidebar) return;
+    // Streamlit has a "toggle sidebar" button (even if we hide the collapsedControl)
+    // This is the one that changes aria-expanded.
+    const toggle =
+      doc.querySelector('button[aria-label="Toggle sidebar"]') ||
+      doc.querySelector('button[title="Toggle sidebar"]') ||
+      doc.querySelector('button[kind="header"]') ||  // fallback (some builds)
+      null;
 
-  const obs = new MutationObserver(() => hidePills());
-  obs.observe(sidebar, { childList: true, subtree: true });
+    if (!toggle) return;
 
-  // extra retries for delayed hydration
+    // If it's collapsed, aria-expanded becomes "false"
+    const expanded = toggle.getAttribute("aria-expanded");
+    if (expanded === "false") {
+      toggle.click(); // reopen
+    }
+  }
+
+  function runAll(){
+    hidePills();
+    forceSidebarOpen();
+  }
+
+  runAll();
+
+  // Observe sidebar + header (because toggle lives in header in some builds)
+  const doc = window.parent.document;
+  const sidebar = doc.querySelector('section[data-testid="stSidebar"]');
+  const header = doc.querySelector('header');
+
+  const obs = new MutationObserver(() => runAll());
+  if (sidebar) obs.observe(sidebar, { childList: true, subtree: true });
+  if (header) obs.observe(header, { childList: true, subtree: true });
+
+  // retry for delayed hydration
   let tries = 0;
   const iv = setInterval(() => {
-    hidePills();
+    runAll();
     tries++;
-    if (tries > 50) clearInterval(iv);
+    if (tries > 80) clearInterval(iv); // ~8s
   }, 100);
 })();
 </script>
@@ -413,6 +426,7 @@ with st.sidebar:
     [![](https://img.shields.io/badge/GitHub-Follow-informational)](https://github.com/akthammomani)
     [![](https://img.shields.io/badge/Linkedin-Connect-informational)](https://www.linkedin.com/in/akthammomani/)
     [![](https://img.shields.io/badge/Open-Issue-informational)](https://github.com/akthammomani/ai_powered_apple_leaf_specialist/issues)
+    [![MAIL Badge](https://img.shields.io/badge/-aktham.momani81@gmail.com-c14438?style=flat-square&logo=Gmail&logoColor=white&link=mailto:aktham.momani81@gmail.com)](mailto:aktham.momani81@gmail.com)
     ###### © Aktham Momani, 2025. All rights reserved.
     """)
 
