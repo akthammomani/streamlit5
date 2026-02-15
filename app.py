@@ -175,6 +175,27 @@ div[data-testid="column"] > div:first-child{
     unsafe_allow_html=True
 )
 
+st.markdown(
+"""
+<style>
+/* Remove the isolated rounded separators in the sidebar (they are empty text inputs) */
+section[data-testid="stSidebar"] div[data-testid="stTextInput"]{
+  display: none !important;
+}
+section[data-testid="stSidebar"] input[type="text"],
+section[data-testid="stSidebar"] input[type="search"]{
+  display: none !important;
+}
+
+/* Extra defensive: if Streamlit wraps them, hide empty widget containers */
+section[data-testid="stSidebar"] div[data-testid="stElementContainer"]:has(div[data-testid="stTextInput"]){
+  display:none !important;
+}
+</style>
+""",
+unsafe_allow_html=True
+)
+
 if Path(BANNER).exists():
     st.image(BANNER, use_container_width=True)
 
