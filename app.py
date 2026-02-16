@@ -32,6 +32,23 @@ cov_min = 0.04
 tex_min = 25.0
 
 # -------------------- Page config (force sidebar open) --------------------
+st.markdown("""
+<style>
+/* Reduce top padding in the main page container */
+div.block-container {
+  padding-top: 0.5rem !important;   /* try: 0rem, 0.25rem, 0.5rem */
+}
+
+/* Optional: reduce extra top padding on very wide layouts */
+@media (min-width: 992px) {
+  div.block-container {
+    padding-top: 0.25rem !important;
+  }
+}
+</style>
+""", unsafe_allow_html=True)
+
+
 st.set_page_config(
     page_title="AI-Powered Apple Leaf Specialist",
     page_icon=APP_LOGO if Path(APP_LOGO).exists() else "🍎",
