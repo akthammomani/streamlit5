@@ -385,7 +385,7 @@ with st.sidebar:
         ext = Path(APP_LOGO).suffix.lstrip(".").lower() or "png"
         st.markdown(
             f"""
-            <div style="display:flex;justify-content:center;margin-top:-0.5rem;">
+            <div style="display:flex;justify-content:center;margin-top:-2rem;">
               <img src="data:image/{ext};base64,{b64}" style="max-width:220px;height:auto;" />
             </div>
             """,
