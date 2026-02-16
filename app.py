@@ -63,7 +63,7 @@ section[data-testid="stSidebar"] > div{
 }
 
 section[data-testid="stSidebar"] .block-container{
-  padding-top: 0.5rem !important;
+  padding-top: 0rem !important;
   background: var(--sb-bg) !important;
 }
 
