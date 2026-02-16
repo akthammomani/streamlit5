@@ -36,7 +36,7 @@ st.markdown("""
 <style>
 /* Reduce top padding in the main page container */
 div.block-container {
-  padding-top: 0.5rem !important;   /* try: 0rem, 0.25rem, 0.5rem */
+  padding-top: 1rem !important;   /* try: 0rem, 0.25rem, 0.5rem */
 }
 
 /* Optional: reduce extra top padding on very wide layouts */
