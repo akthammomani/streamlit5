@@ -386,7 +386,7 @@ with st.sidebar:
         st.markdown(
             f"""
             <div style="display:flex;justify-content:center;margin-top:.2rem;">
-              <img src="data:image/{ext};base64,{b64}" style="max-width:120px;height:auto;" />
+              <img src="data:image/{ext};base64,{b64}" style="max-width:220px;height:auto;" />
             </div>
             """,
             unsafe_allow_html=True
