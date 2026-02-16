@@ -34,12 +34,10 @@ tex_min = 25.0
 # -------------------- Page config (force sidebar open) --------------------
 st.markdown("""
 <style>
-/* Reduce top padding in the main page container */
 div.block-container {
-  padding-top: 1rem !important;   /* try: 0rem, 0.25rem, 0.5rem */
+  padding-top: 0.5rem !important;   
 }
 
-/* Optional: reduce extra top padding on very wide layouts */
 @media (min-width: 992px) {
   div.block-container {
     padding-top: 0.25rem !important;
@@ -84,11 +82,9 @@ section[data-testid="stSidebar"] .block-container{
   background: var(--sb-bg) !important;
 }
 
-/* Hide the visible collapse button */
 button[data-testid="collapsedControl"]{ display:none !important; }
 section[data-testid="stSidebar"] div[data-testid="stSidebarNav"]{ display:none; }
 
-/* typography */
 .sb-app-title{
   font-size: 1.35rem;
   font-weight: 850;
@@ -207,8 +203,7 @@ components.html(
   function forceSidebarOpen() {
     const doc = window.parent.document;
 
-    // Streamlit has a "toggle sidebar" button (even if we hide the collapsedControl)
-    // This is the one that changes aria-expanded.
+
     const toggle =
       doc.querySelector('button[aria-label="Toggle sidebar"]') ||
       doc.querySelector('button[title="Toggle sidebar"]') ||
