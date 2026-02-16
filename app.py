@@ -18,7 +18,7 @@ LAB_PATH  = ART / "labels.json"
 TEMP_PATH = ART / "temperature.json"
 
 BANNER   = "header_banner.jpg"
-APP_LOGO = "logo 2.jpg"
+APP_LOGO = "logo 3.png"
 
 # -------------------- Defaults (Settings are now fixed) --------------------
 THRESHOLD     = 0.85
