@@ -484,7 +484,8 @@ if file:
         st.markdown(f"**{_pretty(pred_label)}** with **{pred_conf*100:.0f}%** Confidence")
         render_prob_bars_native(prob_map)
         st.write("#### Learn More")
-        st.markdown("[![](https://img.shields.io/badge/GitHub%20-Calibrated%20ResNet-18%20Model-informational)](https://github.com/akthammomani/ai_powered_apple_leaf_specialist/blob/main/Notebooks/Modeling_AI_Powered_Apple_Leaf_Specialist.ipynb)")
+        st.markdown("[![](https://img.shields.io/badge/GitHub-Model%20Notebook-informational)](https://github.com/akthammomani/ai_powered_apple_leaf_specialist/blob/main/Notebooks/Modeling_AI_Powered_Apple_Leaf_Specialist.ipynb)")
+
 
     st.markdown(f"### Apple – {_pretty(pred_label)} Care Recommendations:")
     poster_path = CARE_POSTERS.get(pred_label, CARE_POSTERS["healthy"])
