@@ -63,7 +63,7 @@ section[data-testid="stSidebar"] > div{
 }
 
 section[data-testid="stSidebar"] .block-container{
-  padding-top: 0rem !important;
+  padding-top: 1rem !important;
   background: var(--sb-bg) !important;
 }
 
@@ -385,7 +385,7 @@ with st.sidebar:
         ext = Path(APP_LOGO).suffix.lstrip(".").lower() or "png"
         st.markdown(
             f"""
-            <div style="display:flex;justify-content:center;margin-top:.2rem;">
+            <div style="display:flex;justify-content:center;margin-top:0rem;">
               <img src="data:image/{ext};base64,{b64}" style="max-width:220px;height:auto;" />
             </div>
             """,
