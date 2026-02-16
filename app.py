@@ -428,7 +428,7 @@ with st.sidebar:
                 st.session_state.show_camera = False
         st.button("Close camera", on_click=close_camera, key="close_cam_btn")
 
-    st.markdown('</div>', unsafe_allow_html=True)
+    #st.markdown('</div>', unsafe_allow_html=True)
 
     st.write("---")
     st.write("""
